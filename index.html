@@ -57,13 +57,11 @@
     }
     .btn-blind.active { background-color: #ff9500; }
 
-    .preset-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
+    .preset-container {
       margin-bottom: 12px;
     }
     .btn-sub {
+      width: 100%;
       padding: 12px 4px;
       font-size: 0.95rem;
       font-weight: bold;
@@ -121,7 +119,7 @@
     }
     .fine-grid-semitone {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr 1fr 1fr;
       gap: 6px;
       margin-top: 6px;
     }
@@ -234,19 +232,20 @@
     <!-- 基準音 (Osc A) -->
     <div class="control-group">
       <div class="control-header">
-        <span>基準音 (A)</span>
+        <span>基準音 (A) <span id="noteNameDisplay" style="font-size: 0.85rem; color: #007aff; font-weight: normal; margin-left: 4px;">(A49)</span></span>
         <div class="freq-input-group">
-          <input type="number" id="numFreqA" class="freq-number-input" value="440.00" step="0.01" min="100" max="880">
+          <input type="number" id="numFreqA" class="freq-number-input" value="440.00" step="0.01" min="27.5" max="4186.009">
           <span>Hz</span>
         </div>
       </div>
       <div class="cent-display">オフセット: <span id="centADisplay">0.0</span> cent</div>
       
-      <input type="range" id="freqA" min="100" max="880" step="0.01" value="440">
+      <input type="range" id="freqA" min="27.5" max="4186.009" step="0.01" value="440">
       
-      <!-- 100cent刻み (＃・♭) ボタン -->
+      <!-- ♭、440Hz、＃ ボタン -->
       <div class="fine-grid-semitone">
         <button class="btn-fine" onclick="adjustSemitone(-100)">♭ (-100c)</button>
+        <button class="btn-fine" onclick="setFreq440()">440Hz</button>
         <button class="btn-fine" onclick="adjustSemitone(100)">＃ (+100c)</button>
       </div>
 
@@ -259,9 +258,7 @@
     <hr style="border: 0; border-top: 1px solid #e5e5ea; margin: 12px 0;">
 
     <!-- クイック調整ボタン（基準音と調律音の間） -->
-    <span class="label-sm">クイック調整</span>
-    <div class="preset-grid" style="margin-top: 4px;">
-      <button class="btn-sub" onclick="alignUnison()">2音を一致</button>
+    <div class="preset-container" style="margin-top: 4px;">
       <button class="btn-sub" onclick="setRandomDetune()">狂わせる</button>
     </div>
 
@@ -275,7 +272,7 @@
       </div>
       <div class="cent-display">オフセット: <span id="centBDisplay">-4.0</span> cent</div>
 
-      <input type="range" id="freqB" min="100" max="880" step="0.01" value="440">
+      <input type="range" id="freqB" min="27.5" max="4186.009" step="0.01" value="440">
       
       <!-- 0.01Hz微調整ボタン -->
       <div class="fine-grid-hz">
@@ -314,7 +311,6 @@ let centB = -4.0;
 
 let isBlindMode = false;
 
-// ご指定の新しい倍音プリセット音量配列（H1〜H12）
 const defaultHarmonics = [0, 1.0, 0.50, 0.30, 0.10, 0.10, 0.10, 0.05, 0.00, 0.03, 0.01, 0.01, 0.01];
 let ampA = [...defaultHarmonics];
 let ampB = [...defaultHarmonics];
@@ -328,9 +324,29 @@ const valB = document.getElementById('valB');
 const centADisplay = document.getElementById('centADisplay');
 const centBDisplay = document.getElementById('centBDisplay');
 const beatFreq = document.getElementById('beatFreq');
+const noteNameDisplay = document.getElementById('noteNameDisplay');
 const canvas = document.getElementById('canvas');
 const blindMask = document.getElementById('blindMask');
 const ctx = canvas.getContext('2d');
+
+// 周波数からピアノの音名と鍵盤番号 (A1〜C88) を算出する関数
+const noteNames = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+function getPianoKeyInfo(freq) {
+  if (freq <= 0) return { name: "A", number: 49 };
+  // 88鍵盤の基準: A49 = 440Hz (MIDI Note 69)
+  const midiNote = Math.round(69 + 12 * Math.log2(freq / 440.0));
+  // A1 (MIDI 21) から C8 (MIDI 108) の範囲にクランプ
+  const clampedMidi = Math.max(21, Math.min(108, midiNote));
+  const keyNumber = clampedMidi - 20; // A1が1番目
+  const noteIndex = clampedMidi % 12;
+  const noteStr = noteNames[noteIndex];
+  return { name: noteStr, number: keyNumber };
+}
+
+function updateNoteNameDisplay(freq) {
+  const info = getPianoKeyInfo(freq);
+  noteNameDisplay.textContent = `(${info.name}${info.number})`;
+}
 
 function buildHarmonicsUI(target, ampArray) {
   const container = document.getElementById(`harmonics${target}`);
@@ -450,6 +466,7 @@ function updateAudioParameters() {
   const actualB = getActualFreq(baseB, centB);
 
   centADisplay.textContent = (centA >= 0 ? "+" : "") + centA.toFixed(1);
+  updateNoteNameDisplay(baseA);
 
   if (isBlindMode) {
     valB.textContent = "***";
@@ -470,7 +487,6 @@ function updateAudioParameters() {
   }
 }
 
-// 基準周波数の入力同期 (スライダー ⇄ 0.01Hz刻み数値ボックス)
 freqAInput.addEventListener('input', () => {
   numFreqAInput.value = parseFloat(freqAInput.value).toFixed(2);
   updateAudioParameters();
@@ -479,7 +495,7 @@ freqAInput.addEventListener('input', () => {
 numFreqAInput.addEventListener('change', () => {
   let val = parseFloat(numFreqAInput.value);
   if (isNaN(val)) val = 440.0;
-  val = Math.max(100, Math.min(880, val));
+  val = Math.max(27.5, Math.min(4186.009, val));
   numFreqAInput.value = val.toFixed(2);
   freqAInput.value = val;
   updateAudioParameters();
@@ -504,14 +520,19 @@ function adjustValue(target, type, delta) {
   updateAudioParameters();
 }
 
-// 100cent（半音）単位の増減 (＃・♭) : 基準音の周波数自体を連動して変更
 function adjustSemitone(deltaCent) {
   const currentBase = parseFloat(freqAInput.value);
   const newBase = currentBase * Math.pow(2, deltaCent / 1200);
-  const clampedBase = Math.max(100, Math.min(880, newBase));
+  const clampedBase = Math.max(27.5, Math.min(4186.009, newBase));
   
   freqAInput.value = clampedBase.toFixed(2);
   numFreqAInput.value = clampedBase.toFixed(2);
+  updateAudioParameters();
+}
+
+function setFreq440() {
+  freqAInput.value = "440.00";
+  numFreqAInput.value = "440.00";
   updateAudioParameters();
 }
 
@@ -552,13 +573,6 @@ document.querySelectorAll('.hold-btn').forEach(btn => {
   btn.addEventListener('mouseleave', () => stopHold(btn));
 });
 
-function alignUnison() {
-  freqBInput.value = freqAInput.value;
-  centB = centA;
-  updateAudioParameters();
-}
-
-// 必ず1.5cent以上狂わせる（-4.0〜-1.5 または +1.5〜+4.0 の0.5cent刻み）
 function setRandomDetune() {
   const validSteps = [];
   for (let c = -4.0; c <= 4.0; c += 0.5) {
@@ -627,6 +641,9 @@ function drawWave() {
   ctx.stroke();
   ctx.restore();
 }
+
+// 初期ロード時の音名表示更新
+updateNoteNameDisplay(parseFloat(freqAInput.value));
 </script>
 </body>
 </html>
