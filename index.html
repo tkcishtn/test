@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>ユニゾン調律シミュレーター</title>
+  <style>
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      margin: 0;
+      padding: 12px;
+      background-color: #f2f2f7;
+      color: #1c1c1e;
+      user-select: none;
+    }
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    h1 {
+      font-size: 1.2rem;
+      text-align: center;
+      margin: 8px 0 16px 0;
+    }
+    .card {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .btn-main {
+      width: 100%;
+      padding: 14px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: #ffffff;
+      background-color: #007aff;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    .btn-main:active { background-color: #0056b3; }
+
+    .btn-blind {
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      color: #ffffff;
+      background-color: #5856d6;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .btn-blind.active { background-color: #ff9500; }
+
+    .preset-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .btn-sub {
+      padding: 12px 4px;
+      font-size: 0.95rem;
+      font-weight: bold;
+      background-color: #e5e5ea;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: center;
+      color: #007aff;
+    }
+    .btn-sub:active { background-color: #d1d1d6; }
+
+    .control-group { margin-bottom: 8px; }
+    .control-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: bold;
+    }
+    .val-display { font-size: 1.1rem; color: #007aff; font-family: monospace; }
+    .cent-display { font-size: 0.85rem; color: #8e8e93; text-align: right; margin-bottom: 6px; }
+
+    .freq-input-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .freq-number-input {
+      width: 100px;
+      padding: 6px 8px;
+      font-size: 1rem;
+      font-family: monospace;
+      font-weight: bold;
+      border: 1px solid #c7c7cc;
+      border-radius: 6px;
+      text-align: right;
+      color: #007aff;
+    }
+
+    input[type=range] {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: #e5e5ea;
+      accent-color: #007aff;
+      margin: 8px 0;
+    }
+    
+    .fine-grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .fine-grid-hz {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .btn-fine {
+      padding: 10px 0;
+      font-size: 0.82rem;
+      font-weight: bold;
+      background-color: #f2f2f7;
+      border: 1px solid #c7c7cc;
+      border-radius: 8px;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .btn-fine:active, .btn-fine.pressing {
+      background-color: #007aff;
+      color: #ffffff;
+      border-color: #007aff;
+    }
+
+    .btn-retrigger {
+      width: 100%;
+      padding: 10px 0;
+      font-size: 0.85rem;
+      font-weight: bold;
+      background-color: #e5e5ea;
+      color: #1c1c1e;
+      border: 1px solid #c7c7cc;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 6px;
+    }
+    .btn-retrigger:active {
+      background-color: #d1d1d6;
+    }
+
+    details {
+      margin-top: 8px;
+      background: #f8f8fa;
+      padding: 8px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+    }
+    summary { font-weight: bold; cursor: pointer; color: #007aff; outline: none; }
+    
+    .harmonics-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+    }
+    .btn-rand {
+      padding: 4px 8px;
+      font-size: 0.75rem;
+      background-color: #e5e5ea;
+      border: 1px solid #c7c7cc;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .harmonics-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .harmonic-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 0.7rem;
+      background: #ffffff;
+      padding: 6px 2px;
+      border-radius: 6px;
+      border: 1px solid #e5e5ea;
+    }
+    .harmonic-item input[type=range] {
+      writing-mode: bt-lr;
+      -webkit-appearance: slider-vertical;
+      width: 16px;
+      height: 50px;
+      margin: 2px 0;
+    }
+
+    .info-box {
+      text-align: center;
+      padding: 10px;
+      background: #eef6ff;
+      border-radius: 8px;
+      margin-top: 8px;
+    }
+    .info-val {
+      font-size: 1.4rem;
+      font-weight: bold;
+      color: #d9381e;
+      font-family: monospace;
+    }
+
+    canvas {
+      width: 100%;
+      height: 200px;
+      background-color: #1c1c1e;
+      border-radius: 8px;
+      display: block;
+      margin-top: 6px;
+    }
+    .label-sm { font-size: 0.8rem; color: #8e8e93; }
+
+    .blind-canvas-mask {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 200px;
+      background-color: #1c1c1e;
+      color: #8e8e93;
+      border-radius: 8px;
+      margin-top: 6px;
+      font-size: 0.9rem;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>ユニゾン調律シミュレーター</h1>
+
+  <div class="card">
+    <button id="toggleBtn" class="btn-main">発音開始</button>
+    <button id="blindBtn" class="btn-blind" onclick="toggleBlindMode()">数値・波形表示を隠す (ブラインドモード)</button>
+  </div>
+
+  <div class="card">
+    <span class="label-sm">クイック調整</span>
+    <div class="preset-grid">
+      <button class="btn-sub" onclick="alignUnison()">ユニゾン (同音に一致)</button>
+      <button class="btn-sub" onclick="setDetunePreset(-4.0)">唸り (-4.0cent)</button>
+    </div>
+
+    <hr style="border: 0; border-top: 1px solid #e5e5ea; margin: 12px 0;">
+
+    <!-- 基準弦 (Osc A) -->
+    <div class="control-group">
+      <div class="control-header">
+        <span>基準弦 (A)</span>
+        <div class="freq-input-group">
+          <input type="number" id="numFreqA" class="freq-number-input" value="440.0" step="0.1" min="100" max="880">
+          <span>Hz</span>
+        </div>
+      </div>
+      <div class="cent-display">オフセット: <span id="centADisplay">0.0</span> cent</div>
+      
+      <input type="range" id="freqA" min="100" max="880" step="0.1" value="440">
+
+      <details>
+        <summary>基準弦 倍音・位相ミキサー (H1〜H12)</summary>
+        <div class="harmonics-header">
+          <span class="label-sm">振幅 & 位相</span>
+          <button class="btn-rand" onclick="randomizePhases('A')">位相をランダム化</button>
+        </div>
+        <div class="harmonics-grid" id="harmonicsA"></div>
+      </details>
+    </div>
+
+    <hr style="border: 0; border-top: 1px solid #e5e5ea; margin: 12px 0;">
+
+    <!-- 調律弦 (Osc B) -->
+    <div class="control-group">
+      <div class="control-header">
+        <span>調律弦 (B)</span>
+        <span class="val-display"><span id="valB">439.00</span> Hz</span>
+      </div>
+      <div class="cent-display">オフセット: <span id="centBDisplay">-4.0</span> cent</div>
+
+      <input type="range" id="freqB" min="100" max="880" step="0.1" value="440">
+      
+      <!-- セント刻みボタン -->
+      <div class="fine-grid-4">
+        <button class="btn-fine hold-btn" data-target="B" data-type="cent" data-delta="-1.0">-1.0c</button>
+        <button class="btn-fine hold-btn" data-target="B" data-type="cent" data-delta="-0.1">-0.1c</button>
+        <button class="btn-fine hold-btn" data-target="B" data-type="cent" data-delta="0.1">+0.1c</button>
+        <button class="btn-fine hold-btn" data-target="B" data-type="cent" data-delta="1.0">+1.0c</button>
+      </div>
+      <!-- 0.01Hz微調整ボタン -->
+      <div class="fine-grid-hz">
+        <button class="btn-fine hold-btn" data-target="B" data-type="hz" data-delta="-0.01">-(下げる)</button>
+        <button class="btn-fine hold-btn" data-target="B" data-type="hz" data-delta="0.01">＋(上げる)</button>
+      </div>
+      <!-- 再発音ボタン（位相リセット付き） -->
+      <button class="btn-retrigger" onclick="retriggerSound()">再発音</button>
+
+      <details>
+        <summary>調律弦 倍音・位相ミキサー (H1〜H12)</summary>
+        <div class="harmonics-header">
+          <span class="label-sm">振幅 & 位相</span>
+          <button class="btn-rand" onclick="randomizePhases('B')">位相をランダム化</button>
+        </div>
+        <div class="harmonics-grid" id="harmonicsB"></div>
+      </details>
+    </div>
+
+    <div class="info-box">
+      <div class="label-sm">基音間の唸り周波数</div>
+      <div class="info-val"><span id="beatFreq">1.00</span> Hz</div>
+    </div>
+  </div>
+
+  <div class="card" id="waveCard">
+    <span class="label-sm">リアルタイム合成波形 (5波長表示)</span>
+    <canvas id="canvas"></canvas>
+    <div id="blindMask" class="blind-canvas-mask" style="display: none;">
+      [ ブラインドモード表示中 ]
+    </div>
+  </div>
+</div>
+
+<script>
+let audioCtx = null;
+let oscA = null, oscB = null, gainNode = null;
+let isPlaying = false;
+
+let centA = 0.0;
+let centB = -4.0; // デフォルトで -4.0cent
+
+let isBlindMode = false;
+
+let ampA = [0, 0.70, 0.65, 0.30, 0.20, 0.10, 0.05, 0.03, 0.01, 0.02, 0.01, 0.01, 0.01];
+let ampB = [0, 0.70, 0.65, 0.30, 0.20, 0.10, 0.05, 0.03, 0.01, 0.02, 0.01, 0.01, 0.01];
+
+let phaseA = [0];
+let phaseB = [0];
+for (let i = 1; i <= 12; i++) {
+  phaseA.push(Math.random() * 2 * Math.PI);
+  phaseB.push(Math.random() * 2 * Math.PI);
+}
+
+const toggleBtn = document.getElementById('toggleBtn');
+const blindBtn = document.getElementById('blindBtn');
+const freqAInput = document.getElementById('freqA');
+const numFreqAInput = document.getElementById('numFreqA');
+const freqBInput = document.getElementById('freqB');
+const valB = document.getElementById('valB');
+const centADisplay = document.getElementById('centADisplay');
+const centBDisplay = document.getElementById('centBDisplay');
+const beatFreq = document.getElementById('beatFreq');
+const canvas = document.getElementById('canvas');
+const blindMask = document.getElementById('blindMask');
+const ctx = canvas.getContext('2d');
+
+function buildHarmonicsUI(target, ampArray, phaseArray) {
+  const container = document.getElementById(`harmonics${target}`);
+  container.innerHTML = '';
+  for (let i = 1; i <= 12; i++) {
+    const deg = Math.round((phaseArray[i] * 180) / Math.PI);
+    const item = document.createElement('div');
+    item.className = 'harmonic-item';
+    item.innerHTML = `
+      <strong>H${i}</strong>
+      <span class="label-sm">音量</span>
+      <input type="range" min="0" max="1" step="0.01" value="${ampArray[i]}" 
+             oninput="updateAmp('${target}', ${i}, this.value)">
+      <span id="aVal_${target}_${i}">${Math.round(ampArray[i]*100)}%</span>
+      <hr style="width:100%; border:0; border-top:1px solid #eee; margin:4px 0;">
+      <span class="label-sm">位相</span>
+      <input type="range" min="0" max="360" step="1" value="${deg}" 
+             oninput="updatePhase('${target}', ${i}, this.value)">
+      <span id="pVal_${target}_${i}">${deg}°</span>
+    `;
+    container.appendChild(item);
+  }
+}
+buildHarmonicsUI('A', ampA, phaseA);
+buildHarmonicsUI('B', ampB, phaseB);
+
+function updateAmp(target, index, value) {
+  const val = parseFloat(value);
+  if (target === 'A') ampA[index] = val;
+  else ampB[index] = val;
+  document.getElementById(`aVal_${target}_${index}`).textContent = `${Math.round(val * 100)}%`;
+  applyWaveform(target);
+}
+
+function updatePhase(target, index, valueDeg) {
+  const rad = (parseFloat(valueDeg) * Math.PI) / 180;
+  if (target === 'A') phaseA[index] = rad;
+  else phaseB[index] = rad;
+  document.getElementById(`pVal_${target}_${index}`).textContent = `${Math.round(valueDeg)}°`;
+  applyWaveform(target);
+}
+
+function randomizePhases(target) {
+  const pArray = target === 'A' ? phaseA : phaseB;
+  for (let i = 1; i <= 12; i++) {
+    const randomRad = Math.random() * 2 * Math.PI;
+    pArray[i] = randomRad;
+    const deg = Math.round((randomRad * 180) / Math.PI);
+    const el = document.getElementById(`pVal_${target}_${i}`);
+    if (el) {
+      el.textContent = `${deg}°`;
+      el.previousElementSibling.value = deg;
+    }
+  }
+  applyWaveform(target);
+}
+
+function createCustomWave(ampArray, phaseArray) {
+  const real = new Float32Array(ampArray.length);
+  const imag = new Float32Array(ampArray.length);
+  
+  for (let n = 1; n < ampArray.length; n++) {
+    const A = ampArray[n];
+    const phi = phaseArray[n];
+    real[n] = A * Math.sin(phi);
+    imag[n] = A * Math.cos(phi);
+  }
+  return audioCtx.createPeriodicWave(real, imag);
+}
+
+function applyWaveform(target) {
+  if (!audioCtx) return;
+  if (target === 'A' && oscA) {
+    oscA.setPeriodicWave(createCustomWave(ampA, phaseA));
+  } else if (target === 'B' && oscB) {
+    oscB.setPeriodicWave(createCustomWave(ampB, phaseB));
+  }
+}
+
+function initAudio() {
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  
+  oscA = audioCtx.createOscillator();
+  oscB = audioCtx.createOscillator();
+  gainNode = audioCtx.createGain();
+  const mainGain = audioCtx.createGain();
+
+  applyWaveform('A');
+  applyWaveform('B');
+
+  mainGain.gain.value = 0.12;
+  gainNode.gain.value = 1.0;
+
+  oscA.connect(gainNode);
+  oscB.connect(gainNode);
+
+  gainNode.connect(mainGain);
+  mainGain.connect(audioCtx.destination);
+
+  updateAudioParameters();
+
+  oscA.start();
+  oscB.start();
+}
+
+// 再発音時に位相をリセット（再ランダム化）してアタックを鳴らし直す
+function retriggerSound() {
+  if (!audioCtx || !isPlaying || !gainNode) return;
+  
+  // 各倍音の位相を再ランダム化
+  for (let i = 1; i <= 12; i++) {
+    phaseA[i] = Math.random() * 2 * Math.PI;
+    phaseB[i] = Math.random() * 2 * Math.PI;
+  }
+  buildHarmonicsUI('A', ampA, phaseA);
+  buildHarmonicsUI('B', ampB, phaseB);
+  applyWaveform('A');
+  applyWaveform('B');
+
+  const now = audioCtx.currentTime;
+  gainNode.gain.cancelScheduledValues(now);
+  gainNode.gain.setValueAtTime(0, now);
+  gainNode.gain.linearRampToValueAtTime(1.0, now + 0.01);
+}
+
+toggleBtn.addEventListener('click', () => {
+  if (!audioCtx) {
+    initAudio();
+    isPlaying = true;
+    toggleBtn.textContent = "停止";
+    toggleBtn.style.backgroundColor = "#ff3b30";
+    drawWave();
+  } else if (audioCtx.state === 'suspended') {
+    audioCtx.resume();
+    isPlaying = true;
+    toggleBtn.textContent = "停止";
+    toggleBtn.style.backgroundColor = "#ff3b30";
+    drawWave();
+  } else if (audioCtx.state === 'running') {
+    audioCtx.suspend();
+    isPlaying = false;
+    toggleBtn.textContent = "再開";
+    toggleBtn.style.backgroundColor = "#007aff";
+  }
+});
+
+function toggleBlindMode() {
+  isBlindMode = !isBlindMode;
+  blindBtn.textContent = isBlindMode ? "数値・波形表示を再開" : "数値・波形表示を隠す (ブラインドモード)";
+  blindBtn.classList.toggle('active', isBlindMode);
+  
+  if (isBlindMode) {
+    canvas.style.display = 'none';
+    blindMask.style.display = 'flex';
+  } else {
+    canvas.style.display = 'block';
+    blindMask.style.display = 'none';
+  }
+
+  updateAudioParameters();
+}
+
+function getActualFreq(baseFreq, centOffset) {
+  return baseFreq * Math.pow(2, centOffset / 1200);
+}
+
+function updateAudioParameters() {
+  const baseA = parseFloat(freqAInput.value);
+  const baseB = parseFloat(freqBInput.value);
+
+  const actualA = getActualFreq(baseA, centA);
+  const actualB = getActualFreq(baseB, centB);
+
+  centADisplay.textContent = (centA >= 0 ? "+" : "") + centA.toFixed(1);
+
+  if (isBlindMode) {
+    valB.textContent = "***";
+    centBDisplay.textContent = "***";
+    beatFreq.textContent = "***";
+  } else {
+    valB.textContent = actualB.toFixed(2);
+    centBDisplay.textContent = (centB >= 0 ? "+" : "") + centB.toFixed(1);
+    beatFreq.textContent = Math.abs(actualA - actualB).toFixed(2);
+  }
+
+  if (oscA && oscB && audioCtx) {
+    oscA.frequency.setValueAtTime(baseA, audioCtx.currentTime);
+    oscA.detune.setValueAtTime(centA, audioCtx.currentTime);
+
+    oscB.frequency.setValueAtTime(baseB, audioCtx.currentTime);
+    oscB.detune.setValueAtTime(centB, audioCtx.currentTime);
+  }
+}
+
+freqAInput.addEventListener('input', () => {
+  numFreqAInput.value = parseFloat(freqAInput.value).toFixed(1);
+  updateAudioParameters();
+});
+
+numFreqAInput.addEventListener('change', () => {
+  let val = parseFloat(numFreqAInput.value);
+  if (isNaN(val)) val = 440.0;
+  val = Math.max(100, Math.min(880, val));
+  numFreqAInput.value = val.toFixed(1);
+  freqAInput.value = val;
+  updateAudioParameters();
+});
+
+freqBInput.addEventListener('input', () => { updateAudioParameters(); });
+
+function adjustValue(target, type, delta) {
+  if (type === 'cent') {
+    if (target === 'A') centA += delta;
+    else centB += delta;
+  } else if (type === 'hz') {
+    const base = target === 'A' ? parseFloat(freqAInput.value) : parseFloat(freqBInput.value);
+    const currentCent = target === 'A' ? centA : centB;
+    const currentFreq = getActualFreq(base, currentCent);
+    const newFreq = currentFreq + delta;
+    
+    const centDelta = 1200 * Math.log2(newFreq / currentFreq);
+    if (target === 'A') centA += centDelta;
+    else centB += centDelta;
+  }
+  updateAudioParameters();
+}
+
+let holdTimer = null;
+let holdInterval = null;
+
+function startHold(target, type, delta, btnElement) {
+  btnElement.classList.add('pressing');
+  adjustValue(target, type, delta);
+
+  holdTimer = setTimeout(() => {
+    holdInterval = setInterval(() => {
+      adjustValue(target, type, delta);
+    }, 40);
+  }, 300);
+}
+
+function stopHold(btnElement) {
+  if (btnElement) btnElement.classList.remove('pressing');
+  clearTimeout(holdTimer);
+  clearInterval(holdInterval);
+}
+
+document.querySelectorAll('.hold-btn').forEach(btn => {
+  const target = btn.getAttribute('data-target');
+  const type = btn.getAttribute('data-type');
+  const delta = parseFloat(btn.getAttribute('data-delta'));
+
+  btn.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    startHold(target, type, delta, btn);
+  });
+  btn.addEventListener('touchend', () => stopHold(btn));
+  btn.addEventListener('touchcancel', () => stopHold(btn));
+
+  btn.addEventListener('mousedown', () => startHold(target, type, delta, btn));
+  btn.addEventListener('mouseup', () => stopHold(btn));
+  btn.addEventListener('mouseleave', () => stopHold(btn));
+});
+
+function alignUnison() {
+  freqBInput.value = freqAInput.value;
+  centB = centA;
+  updateAudioParameters();
+}
+
+function setDetunePreset(deltaCent) {
+  freqBInput.value = freqAInput.value;
+  centB = centA + deltaCent;
+  updateAudioParameters();
+}
+
+function getWaveValue(ampArray, phaseArray, phase) {
+  let val = 0;
+  for (let i = 1; i < ampArray.length; i++) {
+    val += ampArray[i] * Math.sin(i * phase + phaseArray[i]);
+  }
+  return val / 3.0;
+}
+
+function drawWave() {
+  if (!isPlaying || isBlindMode) return;
+  requestAnimationFrame(drawWave);
+
+  const dpr = window.devicePixelRatio || 1;
+  const cssWidth = canvas.clientWidth;
+  const cssHeight = canvas.clientHeight;
+
+  if (canvas.width !== cssWidth * dpr || canvas.height !== cssHeight * dpr) {
+    canvas.width = cssWidth * dpr;
+    canvas.height = cssHeight * dpr;
+  }
+
+  ctx.save();
+  ctx.scale(dpr, dpr);
+
+  const baseA = parseFloat(freqAInput.value);
+  const baseB = parseFloat(freqBInput.value);
+  const fA = getActualFreq(baseA, centA);
+  const fB = getActualFreq(baseB, centB);
+
+  const avgFreq = (fA + fB) / 2;
+  const displayTimeWindow = 5 / avgFreq;
+
+  ctx.clearRect(0, 0, cssWidth, cssHeight);
+  ctx.beginPath();
+  ctx.strokeStyle = '#34c759';
+  ctx.lineWidth = 2;
+
+  const t = Date.now() / 1000;
+  const step = 0.5;
+
+  for (let x = 0; x <= cssWidth; x += step) {
+    const time = t + (x / cssWidth) * displayTimeWindow;
+    const yA = getWaveValue(ampA, phaseA, 2 * Math.PI * fA * time);
+    const yB = getWaveValue(ampB, phaseB, 2 * Math.PI * fB * time);
+    const yMix = (yA + yB) / 2;
+    
+    const canvasY = (cssHeight / 2) + yMix * (cssHeight / 2 - 16);
+    if (x === 0) ctx.moveTo(x, canvasY);
+    else ctx.lineTo(x, canvasY);
+  }
+  ctx.stroke();
+  ctx.restore();
+}
+</script>
+</body>
+</html>
