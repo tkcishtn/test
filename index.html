@@ -235,7 +235,7 @@
       </div>
       <div class="cent-display">オフセット: <span id="centADisplay">0.0</span> cent</div>
       
-      <!-- Logスライダー (0〜1000) -->
+      <!-- Logスライダー -->
       <input type="range" id="freqA" min="0" max="1000" step="0.1" value="500">
       
       <!-- -OCT、♭、440Hz、＃、+OCT ボタン -->
@@ -255,7 +255,7 @@
 
     <hr style="border: 0; border-top: 1px solid #e5e5ea; margin: 12px 0;">
 
-    <!-- クイック調整ボタン（基準音と調律音の間） -->
+    <!-- クイック調整ボタン -->
     <div class="preset-container" style="margin-top: 4px;">
       <button class="btn-sub" onclick="setRandomDetune()">狂わせる</button>
     </div>
@@ -290,7 +290,7 @@
     </div>
   </div>
 
-  <!-- 発音・ブラインドモードボタンを波形の上に配置 -->
+  <!-- 発音・ブラインドモードボタン -->
   <div class="card">
     <button id="toggleBtn" class="btn-main">▶</button>
     <button id="blindBtn" class="btn-blind" onclick="toggleBlindMode()">ブラインドモード OFF</button>
@@ -318,7 +318,6 @@ let isBlindMode = false;
 const minFreq = 27.5;
 const maxFreq = 4186.009;
 
-// ログスケール変換関数 ( sliderVal: 0〜1000 ⇄ freq: 27.5〜4186.009 )
 function sliderToFreq(val) {
   const minLog = Math.log(minFreq);
   const maxLog = Math.log(maxFreq);
@@ -468,6 +467,10 @@ function toggleBlindMode() {
   } else {
     canvas.style.display = 'block';
     blindMask.style.display = 'none';
+    // ブラインド解除時にアニメーションループが停止していた場合の再起動保証
+    if (isPlaying && audioCtx && audioCtx.state === 'running') {
+      requestAnimationFrame(drawWave);
+    }
   }
 
   updateAudioParameters();
@@ -479,7 +482,7 @@ function getActualFreq(baseFreq, centOffset) {
 
 function updateAudioParameters() {
   const baseA = parseFloat(numFreqAInput.value);
-  const baseB = getBaseFreqB();
+  const baseB = sliderToFreq(parseFloat(freqBInput.value));
 
   const actualA = getActualFreq(baseA, centA);
   const actualB = getActualFreq(baseB, centB);
@@ -506,7 +509,6 @@ function updateAudioParameters() {
   }
 }
 
-// 基準音スライダー操作時 (Log ⇄ 数値連動)
 freqAInput.addEventListener('input', () => {
   const freq = sliderToFreq(parseFloat(freqAInput.value));
   numFreqAInput.value = freq.toFixed(2);
@@ -522,11 +524,6 @@ numFreqAInput.addEventListener('change', () => {
   updateAudioParameters();
 });
 
-// 調律音スライダーの周波数取得
-function getBaseFreqB() {
-  return sliderToFreq(parseFloat(freqBInput.value));
-}
-
 function setBaseFreqB(freq) {
   const clamped = Math.max(minFreq, Math.min(maxFreq, freq));
   freqBInput.value = freqToSlider(clamped);
@@ -539,7 +536,7 @@ function adjustValue(target, type, delta) {
     if (target === 'A') centA += delta;
     else centB += delta;
   } else if (type === 'hz') {
-    const base = target === 'A' ? parseFloat(numFreqAInput.value) : getBaseFreqB();
+    const base = target === 'A' ? parseFloat(numFreqAInput.value) : sliderToFreq(parseFloat(freqBInput.value));
     const currentCent = target === 'A' ? centA : centB;
     const currentFreq = getActualFreq(base, currentCent);
     const newFreq = currentFreq + delta;
@@ -554,13 +551,13 @@ function adjustValue(target, type, delta) {
   updateAudioParameters();
 }
 
-// ボタン操作時：基準音の周波数を変更し、調律音の周波数も基準音に一致させる
+// 基準音ボタン操作時：調律音のベース周波数を基準音の周波数と「完全に一致」させる
 function applyBaseFreqChange(newFreq) {
   const clamped = Math.max(minFreq, Math.min(maxFreq, newFreq));
   numFreqAInput.value = clamped.toFixed(2);
   freqAInput.value = freqToSlider(clamped);
   
-  // 調律音の周波数（実効値ではなくベース周波数）を基準音と一致させる
+  // 調律音のベース周波数を基準音と完全に一致させる（オフセットズレ防止のためcentBは維持または初期化）
   setBaseFreqB(clamped);
   
   updateAudioParameters();
@@ -623,7 +620,7 @@ function setRandomDetune() {
   const randomIndex = Math.floor(Math.random() * validSteps.length);
   const randomCent = validSteps[randomIndex];
 
-  // 調律音のベース周波数を現在の基準音に一致させ、デチューン（cent）を付与
+  // 調律音のベースを現在の基準音に完全に合わせ、オフセット（centB）に差分を設定
   setBaseFreqB(parseFloat(numFreqAInput.value));
   centB = centA + randomCent;
   updateAudioParameters();
@@ -654,7 +651,7 @@ function drawWave() {
   ctx.scale(dpr, dpr);
 
   const baseA = parseFloat(numFreqAInput.value);
-  const baseB = getBaseFreqB();
+  const baseB = sliderToFreq(parseFloat(freqBInput.value));
   const fA = getActualFreq(baseA, centA);
   const fB = getActualFreq(baseB, centB);
 
