@@ -61,7 +61,7 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 8px;
-      margin-top: 6px;
+      margin-bottom: 12px;
     }
     .btn-sub {
       padding: 12px 4px;
@@ -113,13 +113,13 @@
       margin: 8px 0;
     }
     
-    .fine-grid-4 {
+    .fine-grid-hz {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: 1fr 1fr;
       gap: 6px;
       margin-top: 6px;
     }
-    .fine-grid-hz {
+    .fine-grid-semitone {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 6px;
@@ -142,22 +142,6 @@
       border-color: #007aff;
     }
 
-    .btn-retrigger {
-      width: 100%;
-      padding: 10px 0;
-      font-size: 0.85rem;
-      font-weight: bold;
-      background-color: #e5e5ea;
-      color: #1c1c1e;
-      border: 1px solid #c7c7cc;
-      border-radius: 8px;
-      cursor: pointer;
-      margin-top: 6px;
-    }
-    .btn-retrigger:active {
-      background-color: #d1d1d6;
-    }
-
     details {
       margin-top: 8px;
       background: #f8f8fa;
@@ -167,21 +151,6 @@
     }
     summary { font-weight: bold; cursor: pointer; color: #007aff; outline: none; }
     
-    .harmonics-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 8px;
-    }
-    .btn-rand {
-      padding: 4px 8px;
-      font-size: 0.75rem;
-      background-color: #e5e5ea;
-      border: 1px solid #c7c7cc;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
     .harmonics-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -256,35 +225,38 @@
   </div>
 
   <div class="card">
-    <span class="label-sm">クイック調整</span>
-    <div class="preset-grid">
-      <button class="btn-sub" onclick="alignUnison()">2音を一致</button>
-      <button class="btn-sub" onclick="setDetunePreset(-3.822)">唸らせる</button>
-    </div>
-
-    <hr style="border: 0; border-top: 1px solid #e5e5ea; margin: 12px 0;">
-
     <!-- 基準音 (Osc A) -->
     <div class="control-group">
       <div class="control-header">
         <span>基準音 (A)</span>
         <div class="freq-input-group">
-          <input type="number" id="numFreqA" class="freq-number-input" value="440.00" step="0.01" min="100" max="880">
+          <input type="number" id="numFreqA" class="freq-number-input" value="440.0" step="0.1" min="100" max="880">
           <span>Hz</span>
         </div>
       </div>
       <div class="cent-display">オフセット: <span id="centADisplay">0.0</span> cent</div>
       
-      <input type="range" id="freqA" min="100" max="880" step="0.01" value="440">
+      <input type="range" id="freqA" min="100" max="880" step="0.1" value="440">
+      
+      <!-- 100cent刻み (＃・♭) ボタン -->
+      <div class="fine-grid-semitone">
+        <button class="btn-fine" onclick="adjustSemitone(-100)">♭ (-100c)</button>
+        <button class="btn-fine" onclick="adjustSemitone(100)">＃ (+100c)</button>
+      </div>
 
       <details>
-        <summary>基準弦 倍音・位相ミキサー (H1〜H12)</summary>
-        <div class="harmonics-header">
-          <span class="label-sm">振幅 & 位相</span>
-          <button class="btn-rand" onclick="randomizePhases('A')">位相をランダム化</button>
-        </div>
+        <summary>基準音 倍音ミキサー (H1〜H12)</summary>
         <div class="harmonics-grid" id="harmonicsA"></div>
       </details>
+    </div>
+
+    <hr style="border: 0; border-top: 1px solid #e5e5ea; margin: 12px 0;">
+
+    <!-- クイック調整ボタン（基準音と調律音の間） -->
+    <span class="label-sm">クイック調整</span>
+    <div class="preset-grid" style="margin-top: 4px;">
+      <button class="btn-sub" onclick="alignUnison()">2音を一致</button>
+      <button class="btn-sub" onclick="setRandomDetune()">狂わせる</button>
     </div>
 
     <hr style="border: 0; border-top: 1px solid #e5e5ea; margin: 12px 0;">
@@ -299,27 +271,14 @@
 
       <input type="range" id="freqB" min="100" max="880" step="0.1" value="440">
       
-      <!-- セント刻みボタン -->
-      <div class="fine-grid-4">
-        <button class="btn-fine hold-btn" data-target="B" data-type="cent" data-delta="-1.0">-1.0c</button>
-        <button class="btn-fine hold-btn" data-target="B" data-type="cent" data-delta="-0.1">-0.1c</button>
-        <button class="btn-fine hold-btn" data-target="B" data-type="cent" data-delta="0.1">+0.1c</button>
-        <button class="btn-fine hold-btn" data-target="B" data-type="cent" data-delta="1.0">+1.0c</button>
-      </div>
       <!-- 0.01Hz微調整ボタン -->
       <div class="fine-grid-hz">
         <button class="btn-fine hold-btn" data-target="B" data-type="hz" data-delta="-0.01">-(下げる)</button>
         <button class="btn-fine hold-btn" data-target="B" data-type="hz" data-delta="0.01">＋(上げる)</button>
       </div>
-      <!-- 再発音ボタン（位相リセット付き） -->
-      <button class="btn-retrigger" onclick="retriggerSound()">再発音</button>
 
       <details>
-        <summary>調律弦 倍音・位相ミキサー (H1〜H12)</summary>
-        <div class="harmonics-header">
-          <span class="label-sm">振幅 & 位相</span>
-          <button class="btn-rand" onclick="randomizePhases('B')">位相をランダム化</button>
-        </div>
+        <summary>調律音 倍音ミキサー (H1〜H12)</summary>
         <div class="harmonics-grid" id="harmonicsB"></div>
       </details>
     </div>
@@ -341,23 +300,16 @@
 
 <script>
 let audioCtx = null;
-let oscA = null, oscB = null, gainNode = null;
+let oscA = null, oscB = null;
 let isPlaying = false;
 
 let centA = 0.0;
-let centB = -4.0; // デフォルトで -4.0cent
+let centB = -4.0; 
 
 let isBlindMode = false;
 
-let ampA = [0, 0.70, 0.65, 0.30, 0.20, 0.10, 0.05, 0.03, 0.01, 0.02, 0.01, 0.01, 0.01];
-let ampB = [0, 0.70, 0.65, 0.30, 0.20, 0.10, 0.05, 0.03, 0.01, 0.02, 0.01, 0.01, 0.01];
-
-let phaseA = [0];
-let phaseB = [0];
-for (let i = 1; i <= 12; i++) {
-  phaseA.push(Math.random() * 2 * Math.PI);
-  phaseB.push(Math.random() * 2 * Math.PI);
-}
+let ampA = [0, 1.0, 0.65, 0.45, 0.30, 0.22, 0.15, 0.10, 0.07, 0.05, 0.03, 0.02, 0.01];
+let ampB = [0, 1.0, 0.65, 0.45, 0.30, 0.22, 0.15, 0.10, 0.07, 0.05, 0.03, 0.02, 0.01];
 
 const toggleBtn = document.getElementById('toggleBtn');
 const blindBtn = document.getElementById('blindBtn');
@@ -372,11 +324,10 @@ const canvas = document.getElementById('canvas');
 const blindMask = document.getElementById('blindMask');
 const ctx = canvas.getContext('2d');
 
-function buildHarmonicsUI(target, ampArray, phaseArray) {
+function buildHarmonicsUI(target, ampArray) {
   const container = document.getElementById(`harmonics${target}`);
   container.innerHTML = '';
   for (let i = 1; i <= 12; i++) {
-    const deg = Math.round((phaseArray[i] * 180) / Math.PI);
     const item = document.createElement('div');
     item.className = 'harmonic-item';
     item.innerHTML = `
@@ -385,17 +336,12 @@ function buildHarmonicsUI(target, ampArray, phaseArray) {
       <input type="range" min="0" max="1" step="0.01" value="${ampArray[i]}" 
              oninput="updateAmp('${target}', ${i}, this.value)">
       <span id="aVal_${target}_${i}">${Math.round(ampArray[i]*100)}%</span>
-      <hr style="width:100%; border:0; border-top:1px solid #eee; margin:4px 0;">
-      <span class="label-sm">位相</span>
-      <input type="range" min="0" max="360" step="1" value="${deg}" 
-             oninput="updatePhase('${target}', ${i}, this.value)">
-      <span id="pVal_${target}_${i}">${deg}°</span>
     `;
     container.appendChild(item);
   }
 }
-buildHarmonicsUI('A', ampA, phaseA);
-buildHarmonicsUI('B', ampB, phaseB);
+buildHarmonicsUI('A', ampA);
+buildHarmonicsUI('B', ampB);
 
 function updateAmp(target, index, value) {
   const val = parseFloat(value);
@@ -405,38 +351,12 @@ function updateAmp(target, index, value) {
   applyWaveform(target);
 }
 
-function updatePhase(target, index, valueDeg) {
-  const rad = (parseFloat(valueDeg) * Math.PI) / 180;
-  if (target === 'A') phaseA[index] = rad;
-  else phaseB[index] = rad;
-  document.getElementById(`pVal_${target}_${index}`).textContent = `${Math.round(valueDeg)}°`;
-  applyWaveform(target);
-}
-
-function randomizePhases(target) {
-  const pArray = target === 'A' ? phaseA : phaseB;
-  for (let i = 1; i <= 12; i++) {
-    const randomRad = Math.random() * 2 * Math.PI;
-    pArray[i] = randomRad;
-    const deg = Math.round((randomRad * 180) / Math.PI);
-    const el = document.getElementById(`pVal_${target}_${i}`);
-    if (el) {
-      el.textContent = `${deg}°`;
-      el.previousElementSibling.value = deg;
-    }
-  }
-  applyWaveform(target);
-}
-
-function createCustomWave(ampArray, phaseArray) {
+function createCustomWave(ampArray) {
   const real = new Float32Array(ampArray.length);
   const imag = new Float32Array(ampArray.length);
   
   for (let n = 1; n < ampArray.length; n++) {
-    const A = ampArray[n];
-    const phi = phaseArray[n];
-    real[n] = A * Math.sin(phi);
-    imag[n] = A * Math.cos(phi);
+    imag[n] = ampArray[n]; // 位相調整廃止に伴いサイン成分のみで構築
   }
   return audioCtx.createPeriodicWave(real, imag);
 }
@@ -444,9 +364,9 @@ function createCustomWave(ampArray, phaseArray) {
 function applyWaveform(target) {
   if (!audioCtx) return;
   if (target === 'A' && oscA) {
-    oscA.setPeriodicWave(createCustomWave(ampA, phaseA));
+    oscA.setPeriodicWave(createCustomWave(ampA));
   } else if (target === 'B' && oscB) {
-    oscB.setPeriodicWave(createCustomWave(ampB, phaseB));
+    oscB.setPeriodicWave(createCustomWave(ampB));
   }
 }
 
@@ -455,45 +375,22 @@ function initAudio() {
   
   oscA = audioCtx.createOscillator();
   oscB = audioCtx.createOscillator();
-  gainNode = audioCtx.createGain();
   const mainGain = audioCtx.createGain();
 
   applyWaveform('A');
   applyWaveform('B');
 
   mainGain.gain.value = 0.12;
-  gainNode.gain.value = 1.0;
 
-  oscA.connect(gainNode);
-  oscB.connect(gainNode);
+  oscA.connect(mainGain);
+  oscB.connect(mainGain);
 
-  gainNode.connect(mainGain);
   mainGain.connect(audioCtx.destination);
 
   updateAudioParameters();
 
   oscA.start();
   oscB.start();
-}
-
-// 再発音時に位相をリセット（再ランダム化）してアタックを鳴らし直す
-function retriggerSound() {
-  if (!audioCtx || !isPlaying || !gainNode) return;
-  
-  // 各倍音の位相を再ランダム化
-  for (let i = 1; i <= 12; i++) {
-    phaseA[i] = Math.random() * 2 * Math.PI;
-    phaseB[i] = Math.random() * 2 * Math.PI;
-  }
-  buildHarmonicsUI('A', ampA, phaseA);
-  buildHarmonicsUI('B', ampB, phaseB);
-  applyWaveform('A');
-  applyWaveform('B');
-
-  const now = audioCtx.currentTime;
-  gainNode.gain.cancelScheduledValues(now);
-  gainNode.gain.setValueAtTime(0, now);
-  gainNode.gain.linearRampToValueAtTime(1.0, now + 0.01);
 }
 
 toggleBtn.addEventListener('click', () => {
@@ -598,6 +495,12 @@ function adjustValue(target, type, delta) {
   updateAudioParameters();
 }
 
+// 100cent（半音）単位の増減 (＃・♭)
+function adjustSemitone(deltaCent) {
+  centA += deltaCent;
+  updateAudioParameters();
+}
+
 let holdTimer = null;
 let holdInterval = null;
 
@@ -641,16 +544,25 @@ function alignUnison() {
   updateAudioParameters();
 }
 
-function setDetunePreset(deltaCent) {
+// -4cent〜+4centの間で0.5cent刻みのランダムな上げ下げ
+function setRandomDetune() {
+  // -4.0, -3.5, ..., 3.5, 4.0 のステップ数（計17通り）
+  const steps = [];
+  for (let c = -4.0; c <= 4.0; c += 0.5) {
+    steps.push(parseFloat(c.toFixed(1)));
+  }
+  const randomIndex = Math.floor(Math.random() * steps.length);
+  const randomCent = steps[randomIndex];
+
   freqBInput.value = freqAInput.value;
-  centB = centA + deltaCent;
+  centB = centA + randomCent;
   updateAudioParameters();
 }
 
-function getWaveValue(ampArray, phaseArray, phase) {
+function getWaveValue(ampArray, phase) {
   let val = 0;
   for (let i = 1; i < ampArray.length; i++) {
-    val += ampArray[i] * Math.sin(i * phase + phaseArray[i]);
+    val += ampArray[i] * Math.sin(i * phase);
   }
   return val / 3.0;
 }
@@ -689,8 +601,8 @@ function drawWave() {
 
   for (let x = 0; x <= cssWidth; x += step) {
     const time = t + (x / cssWidth) * displayTimeWindow;
-    const yA = getWaveValue(ampA, phaseA, 2 * Math.PI * fA * time);
-    const yB = getWaveValue(ampB, phaseB, 2 * Math.PI * fB * time);
+    const yA = getWaveValue(ampA, 2 * Math.PI * fA * time);
+    const yB = getWaveValue(ampB, 2 * Math.PI * fB * time);
     const yMix = (yA + yB) / 2;
     
     const canvasY = (cssHeight / 2) + yMix * (cssHeight / 2 - 16);
