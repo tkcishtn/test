@@ -93,7 +93,7 @@
       margin-top: 4px;
     }
     .freq-number-input {
-      width: 100px;
+      width: 110px;
       padding: 6px 8px;
       font-size: 1rem;
       font-family: monospace;
@@ -154,25 +154,31 @@
     .harmonics-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
+      gap: 6px;
       margin-top: 8px;
     }
     .harmonic-item {
       display: flex;
       flex-direction: column;
       align-items: center;
-      font-size: 0.7rem;
+      font-size: 0.75rem;
       background: #ffffff;
       padding: 6px 2px;
       border-radius: 6px;
       border: 1px solid #e5e5ea;
     }
-    .harmonic-item input[type=range] {
-      writing-mode: bt-lr;
-      -webkit-appearance: slider-vertical;
-      width: 16px;
-      height: 50px;
-      margin: 2px 0;
+    .harmonic-number {
+      font-weight: bold;
+      margin-bottom: 2px;
+    }
+    .harmonic-spin {
+      width: 100%;
+      padding: 4px;
+      font-size: 0.8rem;
+      font-family: monospace;
+      text-align: center;
+      border: 1px solid #c7c7cc;
+      border-radius: 4px;
     }
 
     .info-box {
@@ -230,13 +236,13 @@
       <div class="control-header">
         <span>基準音 (A)</span>
         <div class="freq-input-group">
-          <input type="number" id="numFreqA" class="freq-number-input" value="440.0" step="0.1" min="100" max="880">
+          <input type="number" id="numFreqA" class="freq-number-input" value="440.00" step="0.01" min="100" max="880">
           <span>Hz</span>
         </div>
       </div>
       <div class="cent-display">オフセット: <span id="centADisplay">0.0</span> cent</div>
       
-      <input type="range" id="freqA" min="100" max="880" step="0.1" value="440">
+      <input type="range" id="freqA" min="100" max="880" step="0.01" value="440">
       
       <!-- 100cent刻み (＃・♭) ボタン -->
       <div class="fine-grid-semitone">
@@ -269,7 +275,7 @@
       </div>
       <div class="cent-display">オフセット: <span id="centBDisplay">-4.0</span> cent</div>
 
-      <input type="range" id="freqB" min="100" max="880" step="0.1" value="440">
+      <input type="range" id="freqB" min="100" max="880" step="0.01" value="440">
       
       <!-- 0.01Hz微調整ボタン -->
       <div class="fine-grid-hz">
@@ -308,8 +314,10 @@ let centB = -4.0;
 
 let isBlindMode = false;
 
-let ampA = [0, 1.0, 0.65, 0.45, 0.30, 0.22, 0.15, 0.10, 0.07, 0.05, 0.03, 0.02, 0.01];
-let ampB = [0, 1.0, 0.65, 0.45, 0.30, 0.22, 0.15, 0.10, 0.07, 0.05, 0.03, 0.02, 0.01];
+// ご指定の新しい倍音プリセット音量配列（H1〜H12）
+const defaultHarmonics = [0, 1.0, 0.50, 0.30, 0.10, 0.10, 0.10, 0.05, 0.00, 0.03, 0.01, 0.01, 0.01];
+let ampA = [...defaultHarmonics];
+let ampB = [...defaultHarmonics];
 
 const toggleBtn = document.getElementById('toggleBtn');
 const blindBtn = document.getElementById('blindBtn');
@@ -331,11 +339,10 @@ function buildHarmonicsUI(target, ampArray) {
     const item = document.createElement('div');
     item.className = 'harmonic-item';
     item.innerHTML = `
-      <strong>H${i}</strong>
-      <span class="label-sm">音量</span>
-      <input type="range" min="0" max="1" step="0.01" value="${ampArray[i]}" 
+      <span class="harmonic-number">H${i}</span>
+      <input type="number" class="harmonic-spin" min="0" max="1" step="0.01" value="${ampArray[i]}" 
+             onchange="updateAmp('${target}', ${i}, this.value)" 
              oninput="updateAmp('${target}', ${i}, this.value)">
-      <span id="aVal_${target}_${i}">${Math.round(ampArray[i]*100)}%</span>
     `;
     container.appendChild(item);
   }
@@ -344,10 +351,11 @@ buildHarmonicsUI('A', ampA);
 buildHarmonicsUI('B', ampB);
 
 function updateAmp(target, index, value) {
-  const val = parseFloat(value);
+  let val = parseFloat(value);
+  if (isNaN(val)) val = 0;
+  val = Math.max(0, Math.min(1, val));
   if (target === 'A') ampA[index] = val;
   else ampB[index] = val;
-  document.getElementById(`aVal_${target}_${index}`).textContent = `${Math.round(val * 100)}%`;
   applyWaveform(target);
 }
 
@@ -356,7 +364,7 @@ function createCustomWave(ampArray) {
   const imag = new Float32Array(ampArray.length);
   
   for (let n = 1; n < ampArray.length; n++) {
-    imag[n] = ampArray[n]; // 位相調整廃止に伴いサイン成分のみで構築
+    imag[n] = ampArray[n];
   }
   return audioCtx.createPeriodicWave(real, imag);
 }
@@ -462,8 +470,9 @@ function updateAudioParameters() {
   }
 }
 
+// 基準周波数の入力同期 (スライダー ⇄ 0.01Hz刻み数値ボックス)
 freqAInput.addEventListener('input', () => {
-  numFreqAInput.value = parseFloat(freqAInput.value).toFixed(1);
+  numFreqAInput.value = parseFloat(freqAInput.value).toFixed(2);
   updateAudioParameters();
 });
 
@@ -471,7 +480,7 @@ numFreqAInput.addEventListener('change', () => {
   let val = parseFloat(numFreqAInput.value);
   if (isNaN(val)) val = 440.0;
   val = Math.max(100, Math.min(880, val));
-  numFreqAInput.value = val.toFixed(1);
+  numFreqAInput.value = val.toFixed(2);
   freqAInput.value = val;
   updateAudioParameters();
 });
@@ -495,9 +504,14 @@ function adjustValue(target, type, delta) {
   updateAudioParameters();
 }
 
-// 100cent（半音）単位の増減 (＃・♭)
+// 100cent（半音）単位の増減 (＃・♭) : 基準音の周波数自体を連動して変更
 function adjustSemitone(deltaCent) {
-  centA += deltaCent;
+  const currentBase = parseFloat(freqAInput.value);
+  const newBase = currentBase * Math.pow(2, deltaCent / 1200);
+  const clampedBase = Math.max(100, Math.min(880, newBase));
+  
+  freqAInput.value = clampedBase.toFixed(2);
+  numFreqAInput.value = clampedBase.toFixed(2);
   updateAudioParameters();
 }
 
@@ -544,15 +558,16 @@ function alignUnison() {
   updateAudioParameters();
 }
 
-// -4cent〜+4centの間で0.5cent刻みのランダムな上げ下げ
+// 必ず1.5cent以上狂わせる（-4.0〜-1.5 または +1.5〜+4.0 の0.5cent刻み）
 function setRandomDetune() {
-  // -4.0, -3.5, ..., 3.5, 4.0 のステップ数（計17通り）
-  const steps = [];
+  const validSteps = [];
   for (let c = -4.0; c <= 4.0; c += 0.5) {
-    steps.push(parseFloat(c.toFixed(1)));
+    if (Math.abs(c) >= 1.5) {
+      validSteps.push(parseFloat(c.toFixed(1)));
+    }
   }
-  const randomIndex = Math.floor(Math.random() * steps.length);
-  const randomCent = steps[randomIndex];
+  const randomIndex = Math.floor(Math.random() * validSteps.length);
+  const randomCent = validSteps[randomIndex];
 
   freqBInput.value = freqAInput.value;
   centB = centA + randomCent;
