@@ -78,7 +78,7 @@
 
     .btn-blind {
       width: 100%;
-      padding: 12px 8px; /* 1.5倍の高さ */
+      padding: 12px 8px;
       font-size: 0.85rem;
       font-weight: bold;
       color: #ffffff;
@@ -105,7 +105,7 @@
 
     .btn-sub {
       width: 100%;
-      padding: 12px 4px; /* 1.5倍の高さ */
+      padding: 12px 4px;
       font-size: 0.85rem;
       font-weight: bold;
       background-color: #e5e5ea;
@@ -225,16 +225,17 @@
 
     .info-box {
       text-align: center;
-      padding: 6px;
+      padding: 8px;
       background: #eef6ff;
       border-radius: 6px;
-      margin-bottom: 8px; /* 調整 */
+      margin-bottom: 8px;
     }
     .info-val {
-      font-size: 1.2rem;
+      font-size: 2.4rem; /* 従来の1.2remから2倍に拡大 */
       font-weight: bold;
       color: #d9381e;
       font-family: monospace;
+      line-height: 1.1;
     }
 
     canvas {
@@ -312,7 +313,7 @@
     <div class="right-column">
       <!-- 調律音ブロック -->
       <div class="card tuning-card-container">
-        <!-- 基音間の唸り周波数を調律音より上に配置 -->
+        <!-- 基音間の唸り周波数（2倍に大きくした表示） -->
         <div class="info-box">
           <div class="label-sm">基音間の唸り周波数</div>
           <div class="info-val"><span id="beatFreq">0.00</span> Hz</div>
