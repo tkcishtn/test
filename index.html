@@ -93,7 +93,7 @@
     .btn-mode {
       width: 100%;
       padding: 8px;
-      margin-top: 6px;
+      margin-bottom: 6px; /* 配置変更に伴うマージン調整 */
       font-size: 0.8rem;
       font-weight: bold;
       color: #007aff;
@@ -308,13 +308,13 @@
         </div>
       </div>
 
-      <!-- 左手で打鍵するメインボタンエリア (ブラインドボタンを削除) -->
+      <!-- 左手で打鍵するメインボタンエリア (ピアノ音モード切替を上に、打鍵ボタンを下に配置) -->
       <div class="card">
         <span class="label-sm" style="font-weight: bold;">演奏コントロール (左手)</span>
-        <div style="margin-top: 6px;">
+        <button id="modeBtn" class="btn-mode" onclick="togglePianoMode()">ピアノ音モード OFF (持続音)</button>
+        <div style="margin-top: 4px;">
           <button id="toggleBtn" class="btn-main">▶</button>
         </div>
-        <button id="modeBtn" class="btn-mode" onclick="togglePianoMode()">ピアノ音モード OFF (持続音)</button>
       </div>
     </div>
 
@@ -322,7 +322,6 @@
     <div class="right-column">
       <!-- 調律音ブロック -->
       <div class="card tuning-card-container">
-        <!-- ブラインドモードボタンを調律音ブロックの最上部に移動 -->
         <button id="blindBtn" class="btn-blind" onclick="toggleBlindMode()">ブラインドモード OFF</button>
 
         <div class="control-group">
