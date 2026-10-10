@@ -504,13 +504,14 @@ function initAudioContext() {
   }
 }
 
-// A49（440Hz）を基準（約7秒）とし、低音で長く・高音で短く（最大±3秒差）変化させる関数
+// A49（440Hz）を基準（7秒）とし、低音で長め（最大約10秒）、高音でさらに短く（最大約2秒）変化させる関数
 function getDecayDuration(freq) {
   const midiNote = 69 + 12 * Math.log2(Math.max(27.5, freq) / 440.0);
   const baseDecay = 7.0; 
-  // 低音側（MIDI 21）に向かうほどプラス（最長10秒）、高音側（MIDI 108）に向かうほどマイナス（最短4秒）
-  const diff = (69 - midiNote) / (69 - 21) * 3.0; 
-  return Math.max(2.0, Math.min(12.0, baseDecay + diff));
+  // 低音側（MIDI 21）で +3秒、高音側（MIDI 108）で -5秒（全体で最高音域がさらに2秒短くなる設定）
+  const diff = (69 - midiNote) / (69 - 21) * 3.0;
+  const highCorrection = (midiNote > 69) ? ((midiNote - 69) / (108 - 69) * 2.0) : 0;
+  return Math.max(1.5, Math.min(12.0, baseDecay + diff - highCorrection));
 }
 
 function startPianoNote() {
@@ -526,7 +527,6 @@ function startPianoNote() {
   masterGain = audioCtx.createGain();
   masterGain.gain.setValueAtTime(0.0, now);
   masterGain.gain.linearRampToValueAtTime(0.25, now + 0.003);
-  // 計算された減衰時間を適用
   masterGain.gain.exponentialRampToValueAtTime(0.001, now + decayDuration);
   masterGain.connect(audioCtx.destination);
 
