@@ -662,11 +662,12 @@ function drawWave() {
 
   const step = 0.5;
 
-  // 【波形の完全ロック・安定化】
-  // 周波数が一致（唸りがない）または非常に近い場合は、時間の経過による微小な位相ジッター（揺らぎ）を排除するため、
-  // 描画の基準時間（t）をオーディオコンテキストの正確な時間（audioCtx.currentTime）ベースに完全同期させます。
-  const isStrictlyUnison = Math.abs(fA - fB) < 0.005;
-  const t = (isStrictlyUnison && audioCtx) ? audioCtx.currentTime : (Date.now() / 1000);
+  // 【チラつき防止ロジック】
+  // 2音の周波数差が完全にない（純正なユニゾン状態）場合、描画開始点の時間位相（t）を0で固定します。
+  // これにより、描画フレームごとの微小なタイマー誤差による「チラつき・横揺れ」を完全に防ぎ、ピタッと静止させます。
+  const freqDiff = Math.abs(fA - fB);
+  const isPureUnison = freqDiff < 0.001;
+  const t = isPureUnison ? 0 : (Date.now() / 1000);
 
   for (let x = 0; x <= cssWidth; x += step) {
     const time = t + (x / cssWidth) * displayTimeWindow;
