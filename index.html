@@ -68,7 +68,7 @@
     }
     .btn-main.pressed { background-color: #ff3b30 !important; }
 
-    /* 右上部の横並びコントロール用グリッド（高さを現状の1.5倍に拡大） */
+    /* 右上部の横並びコントロール用グリッド */
     .top-action-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -324,7 +324,6 @@
           <div class="info-val"><span id="beatFreq">0.00</span> Hz</div>
         </div>
 
-        <!-- ブラインドモードボタンと「狂わせる」ボタン（アクションフィードバック付） -->
         <div class="top-action-grid">
           <button id="blindBtn" class="btn-blind" onclick="toggleBlindMode()">ブラインドモード OFF</button>
           <button class="btn-sub action-feedback" onclick="setRandomDetune()">狂わせる</button>
@@ -487,6 +486,15 @@ function initAudioContext() {
   }
 }
 
+// 周波数からピアノの減衰時間（秒）を計算する関数 (A49=440Hzを基準に最大±3秒差)
+function getDecayDuration(freq) {
+  const midiNote = 69 + 12 * Math.log2(Math.max(27.5, freq) / 440.0);
+  const baseDecay = 7.0; // A49の基準減衰時間
+  // A49 (MIDI 69) を中心に、低音（MIDI 21）で +3s（計10s）、高音（MIDI 108）で -3s（計4s）の差をつける
+  const diff = (69 - midiNote) / (69 - 21) * 3.0; 
+  return Math.max(2.0, Math.min(12.0, baseDecay + diff));
+}
+
 function startPianoNote() {
   initAudioContext();
   stopSoundNodes();
@@ -494,10 +502,13 @@ function startPianoNote() {
   const now = audioCtx.currentTime;
   noteStartTime = now;
 
+  const currentFreq = parseFloat(numFreqAInput.value);
+  const decayDuration = getDecayDuration(currentFreq);
+
   masterGain = audioCtx.createGain();
   masterGain.gain.setValueAtTime(0.0, now);
   masterGain.gain.linearRampToValueAtTime(0.25, now + 0.003);
-  masterGain.gain.exponentialRampToValueAtTime(0.001, now + 7.0);
+  masterGain.gain.exponentialRampToValueAtTime(0.001, now + decayDuration);
   masterGain.connect(audioCtx.destination);
 
   oscA = audioCtx.createOscillator();
@@ -879,7 +890,11 @@ function drawWave() {
   let pianoEnv = 1.0;
   if (isPianoMode && audioCtx) {
     const elapsed = audioCtx.currentTime - noteStartTime;
-    pianoEnv = Math.max(0.02, Math.exp(-0.7 * elapsed));
+    // 波形描画側でも実際の減衰時間と連動
+    const currentFreq = parseFloat(numFreqAInput.value);
+    const decayDuration = getDecayDuration(currentFreq);
+    const expFactor = 7.0 / decayDuration * 0.7;
+    pianoEnv = Math.max(0.02, Math.exp(-expFactor * elapsed));
   }
 
   for (let x = 0; x <= cssWidth; x += step) {
