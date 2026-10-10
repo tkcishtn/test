@@ -9,48 +9,49 @@
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       margin: 0;
-      padding: 12px;
+      padding: 10px;
       background-color: #f2f2f7;
       color: #1c1c1e;
       user-select: none;
     }
     .container {
-      max-width: 900px;
+      max-width: 960px;
       margin: 0 auto;
     }
     h1 {
-      font-size: 1.2rem;
+      font-size: 1.1rem;
       text-align: center;
-      margin: 8px 0 16px 0;
+      margin: 4px 0 10px 0;
     }
 
+    /* 横向き用 左右分割レイアウト (左手：打鍵 / 右手：調律) */
     .app-layout {
       display: grid;
       grid-template-columns: 1fr;
-      gap: 12px;
+      gap: 10px;
     }
     @media (min-width: 768px) {
       .app-layout {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr 1fr; /* 左右2カラム */
       }
     }
 
     .card {
       background: #ffffff;
       border-radius: 12px;
-      padding: 14px;
-      margin-bottom: 12px;
+      padding: 12px;
+      margin-bottom: 10px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     }
     .btn-main {
       width: 100%;
-      padding: 14px;
-      font-size: 1.2rem;
+      padding: 18px; /* 左手で押しやすいように大きく設計 */
+      font-size: 1.4rem;
       font-weight: bold;
       color: #ffffff;
       background-color: #007aff;
       border: none;
-      border-radius: 10px;
+      border-radius: 12px;
       cursor: pointer;
       transition: background-color 0.1s;
     }
@@ -59,8 +60,8 @@
     .btn-blind {
       width: 100%;
       padding: 10px;
-      margin-top: 8px;
-      font-size: 0.9rem;
+      margin-top: 6px;
+      font-size: 0.85rem;
       font-weight: bold;
       color: #ffffff;
       background-color: #5856d6;
@@ -73,8 +74,8 @@
     .btn-mode {
       width: 100%;
       padding: 10px;
-      margin-top: 8px;
-      font-size: 0.9rem;
+      margin-top: 6px;
+      font-size: 0.85rem;
       font-weight: bold;
       color: #007aff;
       background-color: #e5e5ea;
@@ -85,12 +86,12 @@
     .btn-mode.active { background-color: #34c759; color: #ffffff; }
 
     .preset-container {
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
     .btn-sub {
       width: 100%;
-      padding: 12px 4px;
-      font-size: 0.95rem;
+      padding: 10px 4px;
+      font-size: 0.9rem;
       font-weight: bold;
       background-color: #e5e5ea;
       border: none;
@@ -101,26 +102,27 @@
     }
     .btn-sub:active { background-color: #d1d1d6; }
 
-    .control-group { margin-bottom: 8px; }
+    .control-group { margin-bottom: 6px; }
     .control-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       font-weight: bold;
+      font-size: 0.95rem;
     }
-    .val-display { font-size: 1.1rem; color: #007aff; font-family: monospace; }
-    .cent-display { font-size: 0.85rem; color: #8e8e93; text-align: right; margin-bottom: 6px; }
+    .val-display { font-size: 1.05rem; color: #007aff; font-family: monospace; }
+    .cent-display { font-size: 0.8rem; color: #8e8e93; text-align: right; margin-bottom: 4px; }
 
     .freq-input-group {
       display: flex;
       align-items: center;
       gap: 6px;
-      margin-top: 4px;
+      margin-top: 2px;
     }
     .freq-number-input {
-      width: 110px;
-      padding: 6px 8px;
-      font-size: 1rem;
+      width: 100px;
+      padding: 4px 6px;
+      font-size: 0.95rem;
       font-family: monospace;
       font-weight: bold;
       border: 1px solid #c7c7cc;
@@ -135,13 +137,13 @@
       border-radius: 3px;
       background: #e5e5ea;
       accent-color: #007aff;
-      margin: 8px 0;
+      margin: 6px 0;
     }
     
     .fine-grid-hz {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 6px;
+      gap: 8px;
       margin-top: 6px;
     }
     .fine-grid-semitone {
@@ -152,8 +154,8 @@
     }
 
     .btn-fine {
-      padding: 10px 0;
-      font-size: 0.8rem;
+      padding: 12px 0; /* 右手がすばやく正確にタッチ・クリックしやすいよう高さを確保 */
+      font-size: 0.95rem;
       font-weight: bold;
       background-color: #f2f2f7;
       border: 1px solid #c7c7cc;
@@ -168,27 +170,27 @@
     }
 
     details {
-      margin-top: 8px;
+      margin-top: 6px;
       background: #f8f8fa;
-      padding: 8px;
+      padding: 6px;
       border-radius: 8px;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
     }
     summary { font-weight: bold; cursor: pointer; color: #007aff; outline: none; }
     
     .harmonics-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 6px;
-      margin-top: 8px;
+      gap: 4px;
+      margin-top: 6px;
     }
     .harmonic-item {
       display: flex;
       flex-direction: column;
       align-items: center;
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       background: #ffffff;
-      padding: 6px 2px;
+      padding: 4px 2px;
       border-radius: 6px;
       border: 1px solid #e5e5ea;
     }
@@ -198,8 +200,8 @@
     }
     .harmonic-spin {
       width: 100%;
-      padding: 4px;
-      font-size: 0.8rem;
+      padding: 2px;
+      font-size: 0.75rem;
       font-family: monospace;
       text-align: center;
       border: 1px solid #c7c7cc;
@@ -208,13 +210,13 @@
 
     .info-box {
       text-align: center;
-      padding: 10px;
+      padding: 8px;
       background: #eef6ff;
       border-radius: 8px;
-      margin-top: 8px;
+      margin-top: 6px;
     }
     .info-val {
-      font-size: 1.4rem;
+      font-size: 1.3rem;
       font-weight: bold;
       color: #d9381e;
       font-family: monospace;
@@ -222,11 +224,11 @@
 
     canvas {
       width: 100%;
-      height: 180px;
+      height: 150px;
       background-color: #1c1c1e;
       border-radius: 8px;
       display: block;
-      margin-top: 6px;
+      margin-top: 4px;
     }
     .label-sm { font-size: 0.8rem; color: #8e8e93; }
 
@@ -235,12 +237,12 @@
       align-items: center;
       justify-content: center;
       width: 100%;
-      height: 180px;
+      height: 150px;
       background-color: #1c1c1e;
       color: #8e8e93;
       border-radius: 8px;
-      margin-top: 6px;
-      font-size: 0.9rem;
+      margin-top: 4px;
+      font-size: 0.85rem;
       font-weight: bold;
     }
   </style>
@@ -251,19 +253,20 @@
   <h1>ユニゾン調律シミュレーター</h1>
 
   <div class="app-layout">
+    <!-- 【左側カラム】左手で操作：打鍵・発音および基準音設計 -->
     <div>
       <div class="card">
         <!-- 基準音 -->
         <div class="control-group">
           <div class="control-header">
-            <span>基準音 <span id="noteNameDisplay" style="font-size: 0.85rem; color: #007aff; font-weight: normal; margin-left: 4px;">(A49)</span></span>
+            <span>基準音 <span id="noteNameDisplay" style="font-size: 0.8rem; color: #007aff; font-weight: normal; margin-left: 4px;">(A49)</span></span>
             <div class="freq-input-group">
               <input type="number" id="numFreqA" class="freq-number-input" value="440.00" step="0.01" min="27.5" max="4186.009">
               <span>Hz</span>
             </div>
           </div>
           
-          <input type="range" id="freqA" min="0" max="1000" step="0.1" value="500" style="margin-top: 8px;">
+          <input type="range" id="freqA" min="0" max="1000" step="0.1" value="500" style="margin-top: 6px;">
           
           <div class="fine-grid-semitone">
             <button class="btn-fine" onclick="adjustSemitone(-1200)">-OCT</button>
@@ -279,24 +282,43 @@
           </details>
         </div>
 
-        <hr style="border: 0; border-top: 1px solid #e5e5ea; margin: 12px 0;">
+        <hr style="border: 0; border-top: 1px solid #e5e5ea; margin: 10px 0;">
 
-        <div class="preset-container" style="margin-top: 4px;">
+        <div class="preset-container" style="margin-top: 2px;">
           <button class="btn-sub" onclick="setRandomDetune()">狂わせる</button>
         </div>
+      </div>
 
-        <hr style="border: 0; border-top: 1px solid #e5e5ea; margin: 12px 0;">
+      <!-- 左手で打鍵するメインボタンエリア -->
+      <div class="card">
+        <span class="label-sm" style="font-weight: bold;">演奏・発音コントロール (左手操作)</span>
+        <div style="margin-top: 8px;">
+          <button id="toggleBtn" class="btn-main">▶</button>
+        </div>
+        <button id="modeBtn" class="btn-mode" onclick="togglePianoMode()">ピアノ音モード OFF (持続音)</button>
+        <button id="blindBtn" class="btn-blind" onclick="toggleBlindMode()">ブラインドモード OFF</button>
+      </div>
+    </div>
 
+    <!-- 【右側カラム】右手で操作：調律音の微調整および波形モニター -->
+    <div>
+      <div class="card">
         <!-- 調律音 -->
         <div class="control-group">
           <div class="control-header">
-            <span>調律音</span>
+            <span>調律音 (チューニングピン)</span>
             <span class="val-display"><span id="valB">440.00</span> Hz</span>
           </div>
           <div class="cent-display">オフセット: <span id="centBDisplay">0.0</span> cent</div>
 
           <input type="range" id="freqB" min="0" max="1000" step="0.1" value="500">
           
+          <!-- 右手で素早くピンを回す（微調整する）感覚のHzボタン -->
+          <div class="fine-grid-hz" style="margin-top: 8px;">
+            <button class="btn-fine hold-btn" data-target="B" data-type="hz" data-delta="-0.01">◀ 下げる (-0.01Hz)</button>
+            <button class="btn-fine hold-btn" data-target="B" data-type="hz" data-delta="0.01">上げる (+0.01Hz) ▶</button>
+          </div>
+
           <details>
             <summary>調律音 倍音ミキサー (H1〜H12)</summary>
             <div class="harmonics-grid" id="harmonicsB"></div>
@@ -306,33 +328,6 @@
         <div class="info-box">
           <div class="label-sm">基音間の唸り周波数</div>
           <div class="info-val"><span id="beatFreq">0.00</span> Hz</div>
-        </div>
-      </div>
-
-      <!-- 発音・モード切替・ブラインド -->
-      <div class="card">
-        <button id="toggleBtn" class="btn-main">▶</button>
-        <button id="modeBtn" class="btn-mode" onclick="togglePianoMode()">ピアノ音モード OFF (持続音)</button>
-        <button id="blindBtn" class="btn-blind" onclick="toggleBlindMode()">ブラインドモード OFF</button>
-      </div>
-    </div>
-
-    <div>
-      <div class="card">
-        <span class="label-sm" style="font-weight: bold;">調律音 微調整</span>
-        <div style="margin-top: 10px;">
-          <span class="label-sm">セント微調整</span>
-          <div class="fine-grid-hz" style="margin-top: 4px;">
-            <button class="btn-fine hold-btn" data-target="B" data-type="cent" data-delta="-0.1">-0.1c</button>
-            <button class="btn-fine hold-btn" data-target="B" data-type="cent" data-delta="0.1">+0.1c</button>
-          </div>
-        </div>
-        <div style="margin-top: 12px;">
-          <span class="label-sm">周波数 (0.01Hz) 微調整</span>
-          <div class="fine-grid-hz" style="margin-top: 4px;">
-            <button class="btn-fine hold-btn" data-target="B" data-type="hz" data-delta="-0.01">-(下げる)</button>
-            <button class="btn-fine hold-btn" data-target="B" data-type="hz" data-delta="0.01">＋(上げる)</button>
-          </div>
         </div>
       </div>
 
@@ -359,7 +354,7 @@ let exactBaseB = 440.00;
 
 let isPianoMode = false;
 let isBlindMode = false;
-let noteStartTime = 0; // 打鍵開始時間（波形アニメーションの起点）
+let noteStartTime = 0;
 
 const minFreq = 27.5;
 const maxFreq = 4186.009;
@@ -481,16 +476,15 @@ function initAudio() {
   oscB.start();
 }
 
-// ピアノ音モードの打鍵処理（アタックから確実に発音し、波形起点を同期）
 function strikePianoNote() {
   if (!audioCtx || !masterGain || !isPianoMode) return;
   const now = audioCtx.currentTime;
-  noteStartTime = now; // 打鍵した瞬間のオーディオ時計を波形描画の起点に設定
+  noteStartTime = now;
   
   masterGain.gain.cancelScheduledValues(now);
   masterGain.gain.setValueAtTime(0.0, now);
-  masterGain.gain.linearRampToValueAtTime(0.25, now + 0.003); // アタック
-  masterGain.gain.exponentialRampToValueAtTime(0.001, now + 7.0); // 減衰
+  masterGain.gain.linearRampToValueAtTime(0.25, now + 0.003);
+  masterGain.gain.exponentialRampToValueAtTime(0.001, now + 7.0);
 }
 
 function releasePianoNote() {
@@ -646,22 +640,14 @@ freqBInput.addEventListener('input', () => {
 });
 
 function adjustValue(target, type, delta) {
-  if (type === 'cent') {
-    if (target === 'A') centA += delta;
-    else centB += delta;
-  } else if (type === 'hz') {
-    const base = target === 'A' ? parseFloat(numFreqAInput.value) : exactBaseB;
-    const currentCent = target === 'A' ? centA : centB;
-    const currentFreq = getActualFreq(base, currentCent);
+  if (type === 'hz') {
+    const base = exactBaseB;
+    const currentFreq = getActualFreq(base, centB);
     const newFreq = currentFreq + delta;
     
     const centDelta = 1200 * Math.log2(newFreq / currentFreq);
-    if (target === 'A') {
-      centA += centDelta;
-    } else {
-      centB += centDelta;
-      exactBaseB = getActualFreq(exactBaseB, centB) / Math.pow(2, centB / 1200); 
-    }
+    centB += centDelta;
+    exactBaseB = getActualFreq(exactBaseB, centB) / Math.pow(2, centB / 1200); 
   }
   updateAudioParameters();
 }
@@ -788,9 +774,6 @@ function drawWave() {
   const freqDiff = Math.abs(fA - fB);
   const isPureUnison = freqDiff < 0.001;
   
-  // 【打鍵時の波形起点同期】
-  // ピアノ音モード時は、打鍵した正確な時間（noteStartTime）を基準にして波形を描画するよう固定。
-  // これにより、打鍵するたびに必ずアタックの頭（波形の立ち上がり）から描画が始まります。
   let t = (isPureUnison && !isPianoMode) ? 0 : (Date.now() / 1000);
   if (isPianoMode && audioCtx) {
     t = noteStartTime + (Date.now() / 1000 - audioCtx.currentTime);
