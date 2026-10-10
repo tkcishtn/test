@@ -24,14 +24,12 @@
       margin: 2px 0 6px 0;
     }
 
-    /* デフォルト（縦向き）：1カラム */
+    /* 横向き（ランドスケープ）または 768px以上の画面：強制的に左右2カラム */
     .app-layout {
       display: grid;
       grid-template-columns: 1fr;
       gap: 8px;
     }
-
-    /* 横向き（ランドスケープ）または 768px以上の画面：強制的に左右2カラム */
     @media (orientation: landscape), (min-width: 768px) {
       .app-layout {
         grid-template-columns: 1fr 1fr;
@@ -47,7 +45,7 @@
     }
     .btn-main {
       width: 100%;
-      padding: 16px; /* 左手で押しやすい大きさ */
+      padding: 16px;
       font-size: 1.3rem;
       font-weight: bold;
       color: #ffffff;
@@ -156,7 +154,7 @@
     }
 
     .btn-fine {
-      padding: 10px 0; /* 右手で押しやすい高さ */
+      padding: 10px 0;
       font-size: 0.9rem;
       font-weight: bold;
       background-color: #f2f2f7;
@@ -333,12 +331,17 @@
         </div>
       </div>
 
+      <!-- リアルタイム合成波形の折り畳み（トグル）式表示 -->
       <div class="card" id="waveCard">
-        <span class="label-sm">リアルタイム合成波形 (安定表示)</span>
-        <canvas id="canvas"></canvas>
-        <div id="blindMask" class="blind-canvas-mask" style="display: none;">
-          [ ブラインドモード表示中 ]
-        </div>
+        <details open>
+          <summary>リアルタイム合成波形 (安定表示)</summary>
+          <div style="margin-top: 6px;">
+            <canvas id="canvas"></canvas>
+            <div id="blindMask" class="blind-canvas-mask" style="display: none;">
+              [ ブラインドモード表示中 ]
+            </div>
+          </div>
+        </details>
       </div>
     </div>
   </div>
@@ -516,18 +519,23 @@ function handleButtonPress() {
     initAudio();
     isPlaying = true;
     updateToggleBtnText();
-    if (isPianoMode) strikePianoNote();
+    if (isPianoMode) {
+      strikePianoNote();
+    }
     drawWave();
   } else if (audioCtx.state === 'suspended') {
     audioCtx.resume();
     isPlaying = true;
     updateToggleBtnText();
-    if (isPianoMode) strikePianoNote();
+    if (isPianoMode) {
+      strikePianoNote();
+    }
     drawWave();
   } else if (audioCtx.state === 'running') {
     if (isPianoMode) {
       isPlaying = true;
       strikePianoNote();
+      drawWave(); // 打鍵連動で波形描画を再開
     } else {
       audioCtx.suspend();
       isPlaying = false;
@@ -542,6 +550,7 @@ function handleButtonRelease() {
     releasePianoNote();
     isPlaying = false;
     updateToggleBtnText();
+    // 離鍵時に波形描画も停止
   }
 }
 
@@ -566,6 +575,11 @@ function togglePianoMode() {
     masterGain.cancelScheduledValues(now);
     if (!isPianoMode) {
       masterGain.gain.setValueAtTime(0.12, now);
+      if (isPlaying) drawWave();
+    } else {
+      masterGain.gain.setValueAtTime(0.0, now);
+      isPlaying = false;
+      updateToggleBtnText();
     }
   }
 }
@@ -581,7 +595,7 @@ function toggleBlindMode() {
   } else {
     canvas.style.display = 'block';
     blindMask.style.display = 'none';
-    if ((isPlaying || isPianoMode) && audioCtx && audioCtx.state === 'running') {
+    if ((isPlaying || !isPianoMode) && audioCtx && audioCtx.state === 'running') {
       requestAnimationFrame(drawWave);
     }
   }
@@ -728,11 +742,7 @@ function setRandomDetune() {
   freqBInput.value = freqToSlider(currentBase);
   centB = centA + randomCent;
   updateAudioParameters();
-  if (isPianoMode) {
-    isPlaying = true;
-    strikePianoNote();
-    updateToggleBtnText();
-  }
+  // ※ ピアノ音モード時に自動発音させないよう修正済み
 }
 
 function getWaveValue(ampArray, phase) {
