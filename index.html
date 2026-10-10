@@ -24,7 +24,6 @@
       margin: 2px 0 6px 0;
     }
 
-    /* 横向き（ランドスケープ）または 768px以上の画面：強制的に左右2カラム */
     .app-layout {
       display: grid;
       grid-template-columns: 1fr;
@@ -458,46 +457,122 @@ function applyWaveform(target) {
   }
 }
 
-function initAudio() {
-  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  
+function initAudioContext() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+}
+
+// ピアノ音モード：打鍵ごとにオシレーターを新規生成してアタックの頭から発音
+function startPianoNote() {
+  initAudioContext();
+  stopSoundNodes(); // 既存の音を停止・破棄
+
+  const now = audioCtx.currentTime;
+  noteStartTime = now;
+
+  masterGain = audioCtx.createGain();
+  masterGain.gain.setValueAtTime(0.0, now);
+  // ハンマーのアタック感を伴う急峻な立ち上がり
+  masterGain.gain.linearRampToValueAtTime(0.25, now + 0.003);
+  // 自然な減衰
+  masterGain.gain.exponentialRampToValueAtTime(0.001, now + 7.0);
+  masterGain.connect(audioCtx.destination);
+
   oscA = audioCtx.createOscillator();
   oscB = audioCtx.createOscillator();
-  masterGain = audioCtx.createGain();
 
   applyWaveform('A');
   applyWaveform('B');
 
-  masterGain.gain.value = 0.12;
+  const baseA = parseFloat(numFreqAInput.value);
+  const baseB = exactBaseB;
+  oscA.frequency.setValueAtTime(baseA, now);
+  oscA.detune.setValueAtTime(centA, now);
+
+  oscB.frequency.setValueAtTime(baseB, now);
+  oscB.detune.setValueAtTime(centB, now);
 
   oscA.connect(masterGain);
   oscB.connect(masterGain);
 
+  oscA.start(now);
+  oscB.start(now);
+
+  isPlaying = true;
+  updateToggleBtnText();
+  drawWave();
+}
+
+// 離鍵（ダンパー動作：素早く止音してオシレーターを破棄）
+function releasePianoNote() {
+  if (!audioCtx || !masterGain || !isPlaying) return;
+  const now = audioCtx.currentTime;
+  try {
+    masterGain.gain.cancelScheduledValues(now);
+    masterGain.gain.setValueAtTime(masterGain.gain.value, now);
+    masterGain.gain.linearRampToValueAtTime(0.0, now + 0.05);
+    setTimeout(() => {
+      if (!isPlaying) stopSoundNodes();
+    }, 60);
+  } catch (e) {
+    stopSoundNodes();
+  }
+  isPlaying = false;
+  updateToggleBtnText();
+}
+
+// 持続音モード用（▶ / ■）
+function startContinuousSound() {
+  initAudioContext();
+  stopSoundNodes();
+
+  const now = audioCtx.currentTime;
+  masterGain = audioCtx.createGain();
+  masterGain.gain.setValueAtTime(0.12, now);
   masterGain.connect(audioCtx.destination);
 
-  updateAudioParameters();
+  oscA = audioCtx.createOscillator();
+  oscB = audioCtx.createOscillator();
 
-  oscA.start();
-  oscB.start();
+  applyWaveform('A');
+  applyWaveform('B');
+
+  const baseA = parseFloat(numFreqAInput.value);
+  const baseB = exactBaseB;
+  oscA.frequency.setValueAtTime(baseA, now);
+  oscA.detune.setValueAtTime(centA, now);
+
+  oscB.frequency.setValueAtTime(baseB, now);
+  oscB.detune.setValueAtTime(centB, now);
+
+  oscA.connect(masterGain);
+  oscB.connect(masterGain);
+
+  oscA.start(now);
+  oscB.start(now);
+
+  isPlaying = true;
+  updateToggleBtnText();
+  drawWave();
 }
 
-function strikePianoNote() {
-  if (!audioCtx || !masterGain || !isPianoMode) return;
-  const now = audioCtx.currentTime;
-  noteStartTime = now;
-  
-  masterGain.gain.cancelScheduledValues(now);
-  masterGain.gain.setValueAtTime(0.0, now);
-  masterGain.gain.linearRampToValueAtTime(0.25, now + 0.003);
-  masterGain.gain.exponentialRampToValueAtTime(0.001, now + 7.0);
-}
-
-function releasePianoNote() {
-  if (!audioCtx || !masterGain || !isPianoMode) return;
-  const now = audioCtx.currentTime;
-  masterGain.gain.cancelScheduledValues(now);
-  masterGain.gain.setValueAtTime(masterGain.gain.value, now);
-  masterGain.gain.linearRampToValueAtTime(0.0, now + 0.05);
+function stopSoundNodes() {
+  if (oscA) {
+    try { oscA.stop(); oscA.disconnect(); } catch(e) {}
+    oscA = null;
+  }
+  if (oscB) {
+    try { oscB.stop(); oscB.disconnect(); } catch(e) {}
+    oscB = null;
+  }
+  if (masterGain) {
+    try { masterGain.disconnect(); } catch(e) {}
+    masterGain = null;
+  }
 }
 
 toggleBtn.addEventListener('mousedown', () => { handleButtonPress(); });
@@ -515,29 +590,13 @@ toggleBtn.addEventListener('touchend', (e) => {
 
 function handleButtonPress() {
   toggleBtn.classList.add('pressed');
-  if (!audioCtx) {
-    initAudio();
-    isPlaying = true;
-    updateToggleBtnText();
-    if (isPianoMode) {
-      strikePianoNote();
-    }
-    drawWave();
-  } else if (audioCtx.state === 'suspended') {
-    audioCtx.resume();
-    isPlaying = true;
-    updateToggleBtnText();
-    if (isPianoMode) {
-      strikePianoNote();
-    }
-    drawWave();
-  } else if (audioCtx.state === 'running') {
-    if (isPianoMode) {
-      isPlaying = true;
-      strikePianoNote();
-      drawWave(); // 打鍵連動で波形描画を再開
+  if (isPianoMode) {
+    startPianoNote(); // ピアノモード時は押すたびに毎回アタック音から新規発音
+  } else {
+    if (!isPlaying) {
+      startContinuousSound();
     } else {
-      audioCtx.suspend();
+      stopSoundNodes();
       isPlaying = false;
       updateToggleBtnText();
     }
@@ -546,11 +605,8 @@ function handleButtonPress() {
 
 function handleButtonRelease() {
   toggleBtn.classList.remove('pressed');
-  if (isPianoMode && isPlaying && audioCtx && audioCtx.state === 'running') {
-    releasePianoNote();
-    isPlaying = false;
-    updateToggleBtnText();
-    // 離鍵時に波形描画も停止
+  if (isPianoMode) {
+    releasePianoNote(); // 離したら止音
   }
 }
 
@@ -568,20 +624,9 @@ function togglePianoMode() {
   isPianoMode = !isPianoMode;
   modeBtn.textContent = isPianoMode ? "ピアノ音モード ON (打鍵・減衰)" : "ピアノ音モード OFF (持続音)";
   modeBtn.classList.toggle('active', isPianoMode);
+  stopSoundNodes();
+  isPlaying = false;
   updateToggleBtnText();
-
-  if (masterGain && audioCtx) {
-    const now = audioCtx.currentTime;
-    masterGain.cancelScheduledValues(now);
-    if (!isPianoMode) {
-      masterGain.gain.setValueAtTime(0.12, now);
-      if (isPlaying) drawWave();
-    } else {
-      masterGain.gain.setValueAtTime(0.0, now);
-      isPlaying = false;
-      updateToggleBtnText();
-    }
-  }
 }
 
 function toggleBlindMode() {
@@ -595,7 +640,7 @@ function toggleBlindMode() {
   } else {
     canvas.style.display = 'block';
     blindMask.style.display = 'none';
-    if ((isPlaying || !isPianoMode) && audioCtx && audioCtx.state === 'running') {
+    if (isPlaying) {
       requestAnimationFrame(drawWave);
     }
   }
@@ -627,11 +672,13 @@ function updateAudioParameters() {
   }
 
   if (oscA && oscB && audioCtx) {
-    oscA.frequency.setValueAtTime(baseA, audioCtx.currentTime);
-    oscA.detune.setValueAtTime(centA, audioCtx.currentTime);
+    try {
+      oscA.frequency.setValueAtTime(baseA, audioCtx.currentTime);
+      oscA.detune.setValueAtTime(centA, audioCtx.currentTime);
 
-    oscB.frequency.setValueAtTime(baseB, audioCtx.currentTime);
-    oscB.detune.setValueAtTime(centB, audioCtx.currentTime);
+      oscB.frequency.setValueAtTime(baseB, audioCtx.currentTime);
+      oscB.detune.setValueAtTime(centB, audioCtx.currentTime);
+    } catch(e) {}
   }
 }
 
@@ -742,7 +789,6 @@ function setRandomDetune() {
   freqBInput.value = freqToSlider(currentBase);
   centB = centA + randomCent;
   updateAudioParameters();
-  // ※ ピアノ音モード時に自動発音させないよう修正済み
 }
 
 function getWaveValue(ampArray, phase) {
