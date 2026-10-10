@@ -9,49 +9,51 @@
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       margin: 0;
-      padding: 10px;
+      padding: 8px;
       background-color: #f2f2f7;
       color: #1c1c1e;
       user-select: none;
     }
     .container {
-      max-width: 960px;
+      max-width: 1000px;
       margin: 0 auto;
     }
     h1 {
-      font-size: 1.1rem;
+      font-size: 1rem;
       text-align: center;
-      margin: 4px 0 10px 0;
+      margin: 2px 0 6px 0;
     }
 
-    /* 横向き用 左右分割レイアウト (左手：打鍵 / 右手：調律) */
+    /* デフォルト（縦向き）：1カラム */
     .app-layout {
       display: grid;
       grid-template-columns: 1fr;
-      gap: 10px;
+      gap: 8px;
     }
-    @media (min-width: 768px) {
+
+    /* 横向き（ランドスケープ）または 768px以上の画面：強制的に左右2カラム */
+    @media (orientation: landscape), (min-width: 768px) {
       .app-layout {
-        grid-template-columns: 1fr 1fr; /* 左右2カラム */
+        grid-template-columns: 1fr 1fr;
       }
     }
 
     .card {
       background: #ffffff;
-      border-radius: 12px;
-      padding: 12px;
-      margin-bottom: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      border-radius: 10px;
+      padding: 10px;
+      margin-bottom: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
     }
     .btn-main {
       width: 100%;
-      padding: 18px; /* 左手で押しやすいように大きく設計 */
-      font-size: 1.4rem;
+      padding: 16px; /* 左手で押しやすい大きさ */
+      font-size: 1.3rem;
       font-weight: bold;
       color: #ffffff;
       background-color: #007aff;
       border: none;
-      border-radius: 12px;
+      border-radius: 10px;
       cursor: pointer;
       transition: background-color 0.1s;
     }
@@ -59,70 +61,70 @@
 
     .btn-blind {
       width: 100%;
-      padding: 10px;
+      padding: 8px;
       margin-top: 6px;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       font-weight: bold;
       color: #ffffff;
       background-color: #5856d6;
       border: none;
-      border-radius: 8px;
+      border-radius: 6px;
       cursor: pointer;
     }
     .btn-blind.active { background-color: #ff9500; }
 
     .btn-mode {
       width: 100%;
-      padding: 10px;
+      padding: 8px;
       margin-top: 6px;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       font-weight: bold;
       color: #007aff;
       background-color: #e5e5ea;
       border: none;
-      border-radius: 8px;
+      border-radius: 6px;
       cursor: pointer;
     }
     .btn-mode.active { background-color: #34c759; color: #ffffff; }
 
     .preset-container {
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
     .btn-sub {
       width: 100%;
-      padding: 10px 4px;
-      font-size: 0.9rem;
+      padding: 8px 4px;
+      font-size: 0.85rem;
       font-weight: bold;
       background-color: #e5e5ea;
       border: none;
-      border-radius: 8px;
+      border-radius: 6px;
       cursor: pointer;
       text-align: center;
       color: #007aff;
     }
     .btn-sub:active { background-color: #d1d1d6; }
 
-    .control-group { margin-bottom: 6px; }
+    .control-group { margin-bottom: 4px; }
     .control-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       font-weight: bold;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
     }
-    .val-display { font-size: 1.05rem; color: #007aff; font-family: monospace; }
-    .cent-display { font-size: 0.8rem; color: #8e8e93; text-align: right; margin-bottom: 4px; }
+    .val-display { font-size: 1rem; color: #007aff; font-family: monospace; }
+    .cent-display { font-size: 0.75rem; color: #8e8e93; text-align: right; margin-bottom: 2px; }
 
     .freq-input-group {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 4px;
       margin-top: 2px;
     }
     .freq-number-input {
-      width: 100px;
+      width: 90px;
       padding: 4px 6px;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       font-family: monospace;
       font-weight: bold;
       border: 1px solid #c7c7cc;
@@ -133,7 +135,7 @@
 
     input[type=range] {
       width: 100%;
-      height: 6px;
+      height: 5px;
       border-radius: 3px;
       background: #e5e5ea;
       accent-color: #007aff;
@@ -143,19 +145,19 @@
     .fine-grid-hz {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 8px;
+      gap: 6px;
       margin-top: 6px;
     }
     .fine-grid-semitone {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
-      gap: 4px;
-      margin-top: 6px;
+      gap: 3px;
+      margin-top: 4px;
     }
 
     .btn-fine {
-      padding: 12px 0; /* 右手がすばやく正確にタッチ・クリックしやすいよう高さを確保 */
-      font-size: 0.95rem;
+      padding: 10px 0; /* 右手で押しやすい高さ */
+      font-size: 0.9rem;
       font-weight: bold;
       background-color: #f2f2f7;
       border: 1px solid #c7c7cc;
@@ -170,53 +172,53 @@
     }
 
     details {
-      margin-top: 6px;
+      margin-top: 4px;
       background: #f8f8fa;
-      padding: 6px;
-      border-radius: 8px;
-      font-size: 0.8rem;
+      padding: 4px 6px;
+      border-radius: 6px;
+      font-size: 0.75rem;
     }
     summary { font-weight: bold; cursor: pointer; color: #007aff; outline: none; }
     
     .harmonics-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 4px;
-      margin-top: 6px;
+      gap: 3px;
+      margin-top: 4px;
     }
     .harmonic-item {
       display: flex;
       flex-direction: column;
       align-items: center;
-      font-size: 0.7rem;
+      font-size: 0.65rem;
       background: #ffffff;
-      padding: 4px 2px;
-      border-radius: 6px;
+      padding: 2px;
+      border-radius: 4px;
       border: 1px solid #e5e5ea;
     }
     .harmonic-number {
       font-weight: bold;
-      margin-bottom: 2px;
+      margin-bottom: 1px;
     }
     .harmonic-spin {
       width: 100%;
       padding: 2px;
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       font-family: monospace;
       text-align: center;
       border: 1px solid #c7c7cc;
-      border-radius: 4px;
+      border-radius: 3px;
     }
 
     .info-box {
       text-align: center;
-      padding: 8px;
+      padding: 6px;
       background: #eef6ff;
-      border-radius: 8px;
-      margin-top: 6px;
+      border-radius: 6px;
+      margin-top: 4px;
     }
     .info-val {
-      font-size: 1.3rem;
+      font-size: 1.2rem;
       font-weight: bold;
       color: #d9381e;
       font-family: monospace;
@@ -224,25 +226,25 @@
 
     canvas {
       width: 100%;
-      height: 150px;
+      height: 130px;
       background-color: #1c1c1e;
-      border-radius: 8px;
+      border-radius: 6px;
       display: block;
       margin-top: 4px;
     }
-    .label-sm { font-size: 0.8rem; color: #8e8e93; }
+    .label-sm { font-size: 0.75rem; color: #8e8e93; }
 
     .blind-canvas-mask {
       display: flex;
       align-items: center;
       justify-content: center;
       width: 100%;
-      height: 150px;
+      height: 130px;
       background-color: #1c1c1e;
       color: #8e8e93;
-      border-radius: 8px;
+      border-radius: 6px;
       margin-top: 4px;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       font-weight: bold;
     }
   </style>
@@ -259,14 +261,14 @@
         <!-- 基準音 -->
         <div class="control-group">
           <div class="control-header">
-            <span>基準音 <span id="noteNameDisplay" style="font-size: 0.8rem; color: #007aff; font-weight: normal; margin-left: 4px;">(A49)</span></span>
+            <span>基準音 <span id="noteNameDisplay" style="font-size: 0.75rem; color: #007aff; font-weight: normal; margin-left: 2px;">(A49)</span></span>
             <div class="freq-input-group">
               <input type="number" id="numFreqA" class="freq-number-input" value="440.00" step="0.01" min="27.5" max="4186.009">
               <span>Hz</span>
             </div>
           </div>
           
-          <input type="range" id="freqA" min="0" max="1000" step="0.1" value="500" style="margin-top: 6px;">
+          <input type="range" id="freqA" min="0" max="1000" step="0.1" value="500">
           
           <div class="fine-grid-semitone">
             <button class="btn-fine" onclick="adjustSemitone(-1200)">-OCT</button>
@@ -282,7 +284,7 @@
           </details>
         </div>
 
-        <hr style="border: 0; border-top: 1px solid #e5e5ea; margin: 10px 0;">
+        <hr style="border: 0; border-top: 1px solid #e5e5ea; margin: 8px 0;">
 
         <div class="preset-container" style="margin-top: 2px;">
           <button class="btn-sub" onclick="setRandomDetune()">狂わせる</button>
@@ -291,8 +293,8 @@
 
       <!-- 左手で打鍵するメインボタンエリア -->
       <div class="card">
-        <span class="label-sm" style="font-weight: bold;">演奏・発音コントロール (左手操作)</span>
-        <div style="margin-top: 8px;">
+        <span class="label-sm" style="font-weight: bold;">演奏コントロール (左手)</span>
+        <div style="margin-top: 6px;">
           <button id="toggleBtn" class="btn-main">▶</button>
         </div>
         <button id="modeBtn" class="btn-mode" onclick="togglePianoMode()">ピアノ音モード OFF (持続音)</button>
@@ -306,15 +308,15 @@
         <!-- 調律音 -->
         <div class="control-group">
           <div class="control-header">
-            <span>調律音 (チューニングピン)</span>
+            <span>調律音 (右手操作)</span>
             <span class="val-display"><span id="valB">440.00</span> Hz</span>
           </div>
           <div class="cent-display">オフセット: <span id="centBDisplay">0.0</span> cent</div>
 
           <input type="range" id="freqB" min="0" max="1000" step="0.1" value="500">
           
-          <!-- 右手で素早くピンを回す（微調整する）感覚のHzボタン -->
-          <div class="fine-grid-hz" style="margin-top: 8px;">
+          <!-- 右手で素早くピンを回す（微調整する）Hzボタン -->
+          <div class="fine-grid-hz" style="margin-top: 6px;">
             <button class="btn-fine hold-btn" data-target="B" data-type="hz" data-delta="-0.01">◀ 下げる (-0.01Hz)</button>
             <button class="btn-fine hold-btn" data-target="B" data-type="hz" data-delta="0.01">上げる (+0.01Hz) ▶</button>
           </div>
