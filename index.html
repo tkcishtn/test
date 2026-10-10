@@ -233,10 +233,9 @@
           <span>Hz</span>
         </div>
       </div>
-      <div class="cent-display">オフセット: <span id="centADisplay">0.0</span> cent</div>
       
       <!-- Logスライダー -->
-      <input type="range" id="freqA" min="0" max="1000" step="0.1" value="500">
+      <input type="range" id="freqA" min="0" max="1000" step="0.1" value="500" style="margin-top: 8px;">
       
       <!-- -OCT、♭、440Hz、＃、+OCT ボタン -->
       <div class="fine-grid-semitone">
@@ -266,9 +265,9 @@
     <div class="control-group">
       <div class="control-header">
         <span>調律音</span>
-        <span class="val-display"><span id="valB">439.00</span> Hz</span>
+        <span class="val-display"><span id="valB">440.00</span> Hz</span>
       </div>
-      <div class="cent-display">オフセット: <span id="centBDisplay">-4.0</span> cent</div>
+      <div class="cent-display">オフセット: <span id="centBDisplay">0.0</span> cent</div>
 
       <input type="range" id="freqB" min="0" max="1000" step="0.1" value="500">
       
@@ -286,7 +285,7 @@
 
     <div class="info-box">
       <div class="label-sm">基音間の唸り周波数</div>
-      <div class="info-val"><span id="beatFreq">1.00</span> Hz</div>
+      <div class="info-val"><span id="beatFreq">0.00</span> Hz</div>
     </div>
   </div>
 
@@ -311,7 +310,7 @@ let oscA = null, oscB = null;
 let isPlaying = false;
 
 let centA = 0.0;
-let centB = -4.0; 
+let centB = 0.0; 
 
 let isBlindMode = false;
 
@@ -342,7 +341,6 @@ const freqAInput = document.getElementById('freqA');
 const numFreqAInput = document.getElementById('numFreqA');
 const freqBInput = document.getElementById('freqB');
 const valB = document.getElementById('valB');
-const centADisplay = document.getElementById('centADisplay');
 const centBDisplay = document.getElementById('centBDisplay');
 const beatFreq = document.getElementById('beatFreq');
 const noteNameDisplay = document.getElementById('noteNameDisplay');
@@ -467,7 +465,6 @@ function toggleBlindMode() {
   } else {
     canvas.style.display = 'block';
     blindMask.style.display = 'none';
-    // ブラインド解除時にアニメーションループが停止していた場合の再起動保証
     if (isPlaying && audioCtx && audioCtx.state === 'running') {
       requestAnimationFrame(drawWave);
     }
@@ -487,7 +484,6 @@ function updateAudioParameters() {
   const actualA = getActualFreq(baseA, centA);
   const actualB = getActualFreq(baseB, centB);
 
-  centADisplay.textContent = (centA >= 0 ? "+" : "") + centA.toFixed(1);
   updateNoteNameDisplay(baseA);
 
   if (isBlindMode) {
@@ -551,14 +547,13 @@ function adjustValue(target, type, delta) {
   updateAudioParameters();
 }
 
-// 基準音ボタン操作時：調律音のベース周波数を基準音の周波数と「完全に一致」させる
 function applyBaseFreqChange(newFreq) {
   const clamped = Math.max(minFreq, Math.min(maxFreq, newFreq));
   numFreqAInput.value = clamped.toFixed(2);
   freqAInput.value = freqToSlider(clamped);
   
-  // 調律音のベース周波数を基準音と完全に一致させる（オフセットズレ防止のためcentBは維持または初期化）
   setBaseFreqB(clamped);
+  centB = 0.0;
   
   updateAudioParameters();
 }
@@ -620,7 +615,6 @@ function setRandomDetune() {
   const randomIndex = Math.floor(Math.random() * validSteps.length);
   const randomCent = validSteps[randomIndex];
 
-  // 調律音のベースを現在の基準音に完全に合わせ、オフセット（centB）に差分を設定
   setBaseFreqB(parseFloat(numFreqAInput.value));
   centB = centA + randomCent;
   updateAudioParameters();
@@ -680,7 +674,7 @@ function drawWave() {
   ctx.restore();
 }
 
-// 初期ロード時の同期設定
+// 初期ロード時の設定
 freqAInput.value = freqToSlider(440.00);
 freqBInput.value = freqToSlider(440.00);
 updateNoteNameDisplay(440.00);
