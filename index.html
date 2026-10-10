@@ -35,6 +35,17 @@
       }
     }
 
+    /* 横画面時のみ、右側の要素の並び順を入れ替えて波形を上（調律音の上）に配置する */
+    @media (orientation: landscape), (min-width: 768px) {
+      .right-column {
+        display: flex;
+        flex-direction: column;
+      }
+      .right-column .wave-card-container {
+        order: -1; /* 最上部に移動 */
+      }
+    }
+
     .card {
       background: #ffffff;
       border-radius: 10px;
@@ -142,8 +153,8 @@
     .fine-grid-hz {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 6px;
-      margin-top: 6px;
+      gap: 8px;
+      margin-top: 8px;
     }
     .fine-grid-semitone {
       display: grid;
@@ -152,13 +163,14 @@
       margin-top: 4px;
     }
 
+    /* 上げる・下げるボタンの高さを打鍵ボタンに合せてサイズUP */
     .btn-fine {
-      padding: 10px 0;
-      font-size: 0.9rem;
+      padding: 16px 0;
+      font-size: 1.05rem;
       font-weight: bold;
       background-color: #f2f2f7;
       border: 1px solid #c7c7cc;
-      border-radius: 8px;
+      border-radius: 10px;
       cursor: pointer;
       touch-action: manipulation;
     }
@@ -268,11 +280,11 @@
           <input type="range" id="freqA" min="0" max="1000" step="0.1" value="500">
           
           <div class="fine-grid-semitone">
-            <button class="btn-fine" onclick="adjustSemitone(-1200)">-OCT</button>
-            <button class="btn-fine" onclick="adjustSemitone(-100)">♭</button>
-            <button class="btn-fine" onclick="setFreq440()">440Hz</button>
-            <button class="btn-fine" onclick="adjustSemitone(100)">＃</button>
-            <button class="btn-fine" onclick="adjustSemitone(1200)">+OCT</button>
+            <button class="btn-fine" style="padding: 10px 0; font-size: 0.9rem;" onclick="adjustSemitone(-1200)">-OCT</button>
+            <button class="btn-fine" style="padding: 10px 0; font-size: 0.9rem;" onclick="adjustSemitone(-100)">♭</button>
+            <button class="btn-fine" style="padding: 10px 0; font-size: 0.9rem;" onclick="setFreq440()">440Hz</button>
+            <button class="btn-fine" style="padding: 10px 0; font-size: 0.9rem;" onclick="adjustSemitone(100)">＃</button>
+            <button class="btn-fine" style="padding: 10px 0; font-size: 0.9rem;" onclick="adjustSemitone(1200)">+OCT</button>
           </div>
 
           <details>
@@ -299,8 +311,21 @@
       </div>
     </div>
 
-    <!-- 【右側カラム】右手で操作：調律音の微調整および波形モニター -->
-    <div>
+    <!-- 【右側カラム】右手で操作：横画面時は上部に波形、下部に調律音ブロック -->
+    <div class="right-column">
+      <!-- リアルタイム合成波形の折り畳み（トグル）式表示 -->
+      <div class="card wave-card-container" id="waveCard">
+        <details open>
+          <summary>リアルタイム合成波形 (安定表示)</summary>
+          <div style="margin-top: 6px;">
+            <canvas id="canvas"></canvas>
+            <div id="blindMask" class="blind-canvas-mask" style="display: none;">
+              [ ブラインドモード表示中 ]
+            </div>
+          </div>
+        </details>
+      </div>
+
       <div class="card">
         <!-- 調律音 -->
         <div class="control-group">
@@ -312,10 +337,10 @@
 
           <input type="range" id="freqB" min="0" max="1000" step="0.1" value="500">
           
-          <!-- 右手で素早くピンを回す（微調整する）Hzボタン -->
+          <!-- 右手で素早くピンを回す（微調整する）Hzボタン：サイズUP -->
           <div class="fine-grid-hz" style="margin-top: 6px;">
-            <button class="btn-fine hold-btn" data-target="B" data-type="hz" data-delta="-0.01">◀ 下げる (-0.01Hz)</button>
-            <button class="btn-fine hold-btn" data-target="B" data-type="hz" data-delta="0.01">上げる (+0.01Hz) ▶</button>
+            <button class="btn-fine hold-btn" data-target="B" data-type="hz" data-delta="-0.01">◀ 下げる</button>
+            <button class="btn-fine hold-btn" data-target="B" data-type="hz" data-delta="0.01">上げる ▶</button>
           </div>
 
           <details>
@@ -328,19 +353,6 @@
           <div class="label-sm">基音間の唸り周波数</div>
           <div class="info-val"><span id="beatFreq">0.00</span> Hz</div>
         </div>
-      </div>
-
-      <!-- リアルタイム合成波形の折り畳み（トグル）式表示 -->
-      <div class="card" id="waveCard">
-        <details open>
-          <summary>リアルタイム合成波形 (安定表示)</summary>
-          <div style="margin-top: 6px;">
-            <canvas id="canvas"></canvas>
-            <div id="blindMask" class="blind-canvas-mask" style="display: none;">
-              [ ブラインドモード表示中 ]
-            </div>
-          </div>
-        </details>
       </div>
     </div>
   </div>
@@ -466,19 +478,16 @@ function initAudioContext() {
   }
 }
 
-// ピアノ音モード：打鍵ごとにオシレーターを新規生成してアタックの頭から発音
 function startPianoNote() {
   initAudioContext();
-  stopSoundNodes(); // 既存の音を停止・破棄
+  stopSoundNodes();
 
   const now = audioCtx.currentTime;
   noteStartTime = now;
 
   masterGain = audioCtx.createGain();
   masterGain.gain.setValueAtTime(0.0, now);
-  // ハンマーのアタック感を伴う急峻な立ち上がり
   masterGain.gain.linearRampToValueAtTime(0.25, now + 0.003);
-  // 自然な減衰
   masterGain.gain.exponentialRampToValueAtTime(0.001, now + 7.0);
   masterGain.connect(audioCtx.destination);
 
@@ -507,7 +516,6 @@ function startPianoNote() {
   drawWave();
 }
 
-// 離鍵（ダンパー動作：素早く止音してオシレーターを破棄）
 function releasePianoNote() {
   if (!audioCtx || !masterGain || !isPlaying) return;
   const now = audioCtx.currentTime;
@@ -525,7 +533,6 @@ function releasePianoNote() {
   updateToggleBtnText();
 }
 
-// 持続音モード用（▶ / ■）
 function startContinuousSound() {
   initAudioContext();
   stopSoundNodes();
@@ -591,7 +598,7 @@ toggleBtn.addEventListener('touchend', (e) => {
 function handleButtonPress() {
   toggleBtn.classList.add('pressed');
   if (isPianoMode) {
-    startPianoNote(); // ピアノモード時は押すたびに毎回アタック音から新規発音
+    startPianoNote();
   } else {
     if (!isPlaying) {
       startContinuousSound();
@@ -606,7 +613,7 @@ function handleButtonPress() {
 function handleButtonRelease() {
   toggleBtn.classList.remove('pressed');
   if (isPianoMode) {
-    releasePianoNote(); // 離したら止音
+    releasePianoNote();
   }
 }
 
