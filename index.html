@@ -35,7 +35,7 @@
       }
     }
 
-    /* 右側カラムの並び順：縦向きは調律音→波形、横向きは波形→調律音 */
+    /* 右側カラム：縦・横問わず常に「調律音ブロック → 波形カード」の順に固定 */
     .right-column {
       display: flex;
       flex-direction: column;
@@ -45,14 +45,6 @@
     }
     .right-column .wave-card-container {
       order: 2;
-    }
-    @media (orientation: landscape), (min-width: 768px) {
-      .right-column .wave-card-container {
-        order: 1;
-      }
-      .right-column .tuning-card-container {
-        order: 2;
-      }
     }
 
     .card {
@@ -76,11 +68,18 @@
     }
     .btn-main.pressed { background-color: #ff3b30 !important; }
 
+    /* 右上部の横並びコントロール用グリッド（高さを現状の1.5倍に拡大） */
+    .top-action-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
     .btn-blind {
       width: 100%;
-      padding: 8px;
-      margin-bottom: 8px;
-      font-size: 0.8rem;
+      padding: 12px 8px; /* 1.5倍の高さ */
+      font-size: 0.85rem;
       font-weight: bold;
       color: #ffffff;
       background-color: #5856d6;
@@ -93,7 +92,7 @@
     .btn-mode {
       width: 100%;
       padding: 8px;
-      margin-bottom: 6px; /* 配置変更に伴うマージン調整 */
+      margin-bottom: 6px;
       font-size: 0.8rem;
       font-weight: bold;
       color: #007aff;
@@ -104,12 +103,9 @@
     }
     .btn-mode.active { background-color: #34c759; color: #ffffff; }
 
-    .preset-container {
-      margin-bottom: 8px;
-    }
     .btn-sub {
       width: 100%;
-      padding: 8px 4px;
+      padding: 12px 4px; /* 1.5倍の高さ */
       font-size: 0.85rem;
       font-weight: bold;
       background-color: #e5e5ea;
@@ -232,7 +228,7 @@
       padding: 6px;
       background: #eef6ff;
       border-radius: 6px;
-      margin-top: 4px;
+      margin-bottom: 8px; /* 調整 */
     }
     .info-val {
       font-size: 1.2rem;
@@ -300,15 +296,9 @@
             <div class="harmonics-grid" id="harmonicsA"></div>
           </details>
         </div>
-
-        <hr style="border: 0; border-top: 1px solid #e5e5ea; margin: 8px 0;">
-
-        <div class="preset-container" style="margin-top: 2px;">
-          <button class="btn-sub" onclick="setRandomDetune()">狂わせる</button>
-        </div>
       </div>
 
-      <!-- 左手で打鍵するメインボタンエリア (ピアノ音モード切替を上に、打鍵ボタンを下に配置) -->
+      <!-- 左手で打鍵するメインボタンエリア -->
       <div class="card">
         <span class="label-sm" style="font-weight: bold;">演奏コントロール (左手)</span>
         <button id="modeBtn" class="btn-mode" onclick="togglePianoMode()">ピアノ音モード OFF (持続音)</button>
@@ -318,11 +308,21 @@
       </div>
     </div>
 
-    <!-- 【右側カラム】右手で操作：調律音ブロックの一番上にブラインドモードボタンを配置 -->
+    <!-- 【右側カラム】調律音ブロックの上に唸り周波数、最上部にブラインド＆狂わせるボタン配置 -->
     <div class="right-column">
       <!-- 調律音ブロック -->
       <div class="card tuning-card-container">
-        <button id="blindBtn" class="btn-blind" onclick="toggleBlindMode()">ブラインドモード OFF</button>
+        <!-- 基音間の唸り周波数を調律音より上に配置 -->
+        <div class="info-box">
+          <div class="label-sm">基音間の唸り周波数</div>
+          <div class="info-val"><span id="beatFreq">0.00</span> Hz</div>
+        </div>
+
+        <!-- 1.5倍の高さのボタンを横並び配置 -->
+        <div class="top-action-grid">
+          <button id="blindBtn" class="btn-blind" onclick="toggleBlindMode()">ブラインドモード OFF</button>
+          <button class="btn-sub" onclick="setRandomDetune()">狂わせる</button>
+        </div>
 
         <div class="control-group">
           <div class="control-header">
@@ -343,22 +343,19 @@
             <div class="harmonics-grid" id="harmonicsB"></div>
           </details>
         </div>
-
-        <div class="info-box">
-          <div class="label-sm">基音間の唸り周波数</div>
-          <div class="info-val"><span id="beatFreq">0.00</span> Hz</div>
-        </div>
       </div>
 
-      <!-- リアルタイム合成波形カード -->
+      <!-- リアルタイム合成波形カード（トグル/折り畳み式） -->
       <div class="card wave-card-container" id="waveCard">
-        <span class="label-sm" style="font-weight: bold;">リアルタイム合成波形 (安定表示)</span>
-        <div style="margin-top: 6px;">
-          <canvas id="canvas"></canvas>
-          <div id="blindMask" class="blind-canvas-mask" style="display: none;">
-            [ ブラインドモード表示中 ]
+        <details>
+          <summary>リアルタイム合成波形 (安定表示)</summary>
+          <div style="margin-top: 6px;">
+            <canvas id="canvas"></canvas>
+            <div id="blindMask" class="blind-canvas-mask" style="display: none;">
+              [ ブラインドモード表示中 ]
+            </div>
           </div>
-        </div>
+        </details>
       </div>
     </div>
   </div>
