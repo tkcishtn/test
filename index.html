@@ -35,14 +35,23 @@
       }
     }
 
-    /* 横画面時のみ、右側の要素の並び順を入れ替えて波形を上（調律音の上）に配置する */
+    /* 右側カラムの並び順：縦向きは調律音→波形、横向きは波形→調律音 */
+    .right-column {
+      display: flex;
+      flex-direction: column;
+    }
+    .right-column .tuning-card-container {
+      order: 1;
+    }
+    .right-column .wave-card-container {
+      order: 2;
+    }
     @media (orientation: landscape), (min-width: 768px) {
-      .right-column {
-        display: flex;
-        flex-direction: column;
-      }
       .right-column .wave-card-container {
-        order: -1;
+        order: 1;
+      }
+      .right-column .tuning-card-container {
+        order: 2;
       }
     }
 
@@ -70,7 +79,7 @@
     .btn-blind {
       width: 100%;
       padding: 8px;
-      margin-top: 6px;
+      margin-bottom: 8px;
       font-size: 0.8rem;
       font-weight: bold;
       color: #ffffff;
@@ -299,32 +308,23 @@
         </div>
       </div>
 
-      <!-- 左手で打鍵するメインボタンエリア -->
+      <!-- 左手で打鍵するメインボタンエリア (ブラインドボタンを削除) -->
       <div class="card">
         <span class="label-sm" style="font-weight: bold;">演奏コントロール (左手)</span>
         <div style="margin-top: 6px;">
           <button id="toggleBtn" class="btn-main">▶</button>
         </div>
         <button id="modeBtn" class="btn-mode" onclick="togglePianoMode()">ピアノ音モード OFF (持続音)</button>
-        <button id="blindBtn" class="btn-blind" onclick="toggleBlindMode()">ブラインドモード OFF</button>
       </div>
     </div>
 
-    <!-- 【右側カラム】右手で操作：横画面時は上部に波形、下部に調律音ブロック -->
+    <!-- 【右側カラム】右手で操作：調律音ブロックの一番上にブラインドモードボタンを配置 -->
     <div class="right-column">
-      <!-- リアルタイム合成波形 (通常のカード表示へ変更) -->
-      <div class="card wave-card-container" id="waveCard">
-        <span class="label-sm" style="font-weight: bold;">リアルタイム合成波形 (安定表示)</span>
-        <div style="margin-top: 6px;">
-          <canvas id="canvas"></canvas>
-          <div id="blindMask" class="blind-canvas-mask" style="display: none;">
-            [ ブラインドモード表示中 ]
-          </div>
-        </div>
-      </div>
+      <!-- 調律音ブロック -->
+      <div class="card tuning-card-container">
+        <!-- ブラインドモードボタンを調律音ブロックの最上部に移動 -->
+        <button id="blindBtn" class="btn-blind" onclick="toggleBlindMode()">ブラインドモード OFF</button>
 
-      <div class="card">
-        <!-- 調律音 -->
         <div class="control-group">
           <div class="control-header">
             <span>調律音 (右手操作)</span>
@@ -332,10 +332,8 @@
           </div>
           <div class="cent-display">オフセット: <span id="centBDisplay">0.0</span> cent</div>
 
-          <!-- 調律音スライダーは非表示 -->
           <input type="range" id="freqB" min="0" max="1000" step="0.1" value="500" style="display: none;">
           
-          <!-- 右手で素早くピンを回す（微調整する）Hzボタン -->
           <div class="fine-grid-hz" style="margin-top: 6px;">
             <button class="btn-fine hold-btn" data-target="B" data-type="hz" data-delta="-0.01">◀ 下げる</button>
             <button class="btn-fine hold-btn" data-target="B" data-type="hz" data-delta="0.01">上げる ▶</button>
@@ -350,6 +348,17 @@
         <div class="info-box">
           <div class="label-sm">基音間の唸り周波数</div>
           <div class="info-val"><span id="beatFreq">0.00</span> Hz</div>
+        </div>
+      </div>
+
+      <!-- リアルタイム合成波形カード -->
+      <div class="card wave-card-container" id="waveCard">
+        <span class="label-sm" style="font-weight: bold;">リアルタイム合成波形 (安定表示)</span>
+        <div style="margin-top: 6px;">
+          <canvas id="canvas"></canvas>
+          <div id="blindMask" class="blind-canvas-mask" style="display: none;">
+            [ ブラインドモード表示中 ]
+          </div>
         </div>
       </div>
     </div>
