@@ -655,34 +655,20 @@ function drawWave() {
   const avgFreq = (fA + fB) / 2;
   const displayTimeWindow = 5 / avgFreq;
 
-  // 【トリガー同期処理】波形が上向きにゼロを通過する位置（位相）を自動検出して固定
-  const tReal = Date.now() / 1000;
-  let tStart = tReal;
-  const omega = 2 * Math.PI * avgFreq;
-  // 基準位相を計算し、画面の左端（x=0）がゼロクロス付近になるように調整
-  const phaseOffset = (omega * tReal) % (2 * Math.PI);
-  // 初期の立ち上がり位相（sin値がマイナスからプラスに転じる点）にシフト
-  let bestT = tReal;
-  for (let dt = 0; dt < 0.05; dt += 0.001) {
-    const testTime = tReal + dt;
-    const yVal = getWaveValue(ampA, 2 * Math.PI * fA * testTime) + getWaveValue(ampB, 2 * Math.PI * fB * testTime);
-    if (yVal >= 0) {
-      bestT = testTime;
-      break;
-    }
-  }
-  // デチューン（唸り）がゼロに近い時は完全に固定し、ズレているときは緩やかに同期させる
-  const syncWeight = Math.abs(fA - fB) < 0.05 ? 1.0 : 0.3;
-  const t = tReal; // 通常の時間進行
-
   ctx.clearRect(0, 0, cssWidth, cssHeight);
   ctx.beginPath();
   ctx.strokeStyle = '#34c759';
   ctx.lineWidth = 2;
 
   const step = 0.5;
+
+  // 【波形の完全ロック・安定化】
+  // 周波数が一致（唸りがない）または非常に近い場合は、時間の経過による微小な位相ジッター（揺らぎ）を排除するため、
+  // 描画の基準時間（t）をオーディオコンテキストの正確な時間（audioCtx.currentTime）ベースに完全同期させます。
+  const isStrictlyUnison = Math.abs(fA - fB) < 0.005;
+  const t = (isStrictlyUnison && audioCtx) ? audioCtx.currentTime : (Date.now() / 1000);
+
   for (let x = 0; x <= cssWidth; x += step) {
-    // トリガー時間を加味した時間軸
     const time = t + (x / cssWidth) * displayTimeWindow;
     const yA = getWaveValue(ampA, 2 * Math.PI * fA * time);
     const yB = getWaveValue(ampB, 2 * Math.PI * fB * time);
