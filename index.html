@@ -311,6 +311,7 @@ let isPlaying = false;
 
 let centA = 0.0;
 let centB = 0.0; 
+let exactBaseB = 440.00; // 調律音のベース周波数を正確に保持する変数
 
 let isBlindMode = false;
 
@@ -479,7 +480,7 @@ function getActualFreq(baseFreq, centOffset) {
 
 function updateAudioParameters() {
   const baseA = parseFloat(numFreqAInput.value);
-  const baseB = sliderToFreq(parseFloat(freqBInput.value));
+  const baseB = exactBaseB; // 正確なベース周波数を直接使用
 
   const actualA = getActualFreq(baseA, centA);
   const actualB = getActualFreq(baseB, centB);
@@ -520,19 +521,18 @@ numFreqAInput.addEventListener('change', () => {
   updateAudioParameters();
 });
 
-function setBaseFreqB(freq) {
-  const clamped = Math.max(minFreq, Math.min(maxFreq, freq));
-  freqBInput.value = freqToSlider(clamped);
-}
-
-freqBInput.addEventListener('input', () => { updateAudioParameters(); });
+// 調律音スライダー操作時
+freqBInput.addEventListener('input', () => {
+  exactBaseB = sliderToFreq(parseFloat(freqBInput.value));
+  updateAudioParameters();
+});
 
 function adjustValue(target, type, delta) {
   if (type === 'cent') {
     if (target === 'A') centA += delta;
     else centB += delta;
   } else if (type === 'hz') {
-    const base = target === 'A' ? parseFloat(numFreqAInput.value) : sliderToFreq(parseFloat(freqBInput.value));
+    const base = target === 'A' ? parseFloat(numFreqAInput.value) : exactBaseB;
     const currentCent = target === 'A' ? centA : centB;
     const currentFreq = getActualFreq(base, currentCent);
     const newFreq = currentFreq + delta;
@@ -542,17 +542,22 @@ function adjustValue(target, type, delta) {
       centA += centDelta;
     } else {
       centB += centDelta;
+      // 微調整時はexactBaseBを逆算更新して整合性を保つ
+      exactBaseB = getActualFreq(exactBaseB, centB) / Math.pow(2, centB / 1200); 
     }
   }
   updateAudioParameters();
 }
 
+// 基準音ボタン操作時：調律音を基準音と完全に完全一致させ、オフセットも0.0にする
 function applyBaseFreqChange(newFreq) {
   const clamped = Math.max(minFreq, Math.min(maxFreq, newFreq));
   numFreqAInput.value = clamped.toFixed(2);
   freqAInput.value = freqToSlider(clamped);
   
-  setBaseFreqB(clamped);
+  // 調律音のベース周波数を基準音と完全に完全一致させ、スライダー位置も同期
+  exactBaseB = clamped;
+  freqBInput.value = freqToSlider(clamped);
   centB = 0.0;
   
   updateAudioParameters();
@@ -615,7 +620,9 @@ function setRandomDetune() {
   const randomIndex = Math.floor(Math.random() * validSteps.length);
   const randomCent = validSteps[randomIndex];
 
-  setBaseFreqB(parseFloat(numFreqAInput.value));
+  const currentBase = parseFloat(numFreqAInput.value);
+  exactBaseB = currentBase;
+  freqBInput.value = freqToSlider(currentBase);
   centB = centA + randomCent;
   updateAudioParameters();
 }
@@ -645,7 +652,7 @@ function drawWave() {
   ctx.scale(dpr, dpr);
 
   const baseA = parseFloat(numFreqAInput.value);
-  const baseB = sliderToFreq(parseFloat(freqBInput.value));
+  const baseB = exactBaseB;
   const fA = getActualFreq(baseA, centA);
   const fB = getActualFreq(baseB, centB);
 
@@ -677,6 +684,7 @@ function drawWave() {
 // 初期ロード時の設定
 freqAInput.value = freqToSlider(440.00);
 freqBInput.value = freqToSlider(440.00);
+exactBaseB = 440.00;
 updateNoteNameDisplay(440.00);
 </script>
 </body>
