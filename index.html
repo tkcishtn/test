@@ -245,7 +245,7 @@
       border-radius: 3px;
     }
 
-    /* 唸り周波数の表示領域：上下のパディングを増やして上下余白を拡大 */
+    /* 唸り周波数の表示領域 */
     .info-box {
       text-align: center;
       padding: 18px 8px; 
@@ -336,7 +336,7 @@
     <div class="right-column">
       <!-- 調律音ブロック -->
       <div class="card tuning-card-container">
-        <!-- 基音間の唸り周波数（上下の余白を拡大） -->
+        <!-- 基音間の唸り周波数 -->
         <div class="info-box">
           <div class="label-sm">基音間の唸り周波数</div>
           <div class="info-val"><span id="beatFreq">0.00</span> Hz</div>
@@ -504,9 +504,11 @@ function initAudioContext() {
   }
 }
 
+// A49（440Hz）を基準（約7秒）とし、低音で長く・高音で短く（最大±3秒差）変化させる関数
 function getDecayDuration(freq) {
   const midiNote = 69 + 12 * Math.log2(Math.max(27.5, freq) / 440.0);
   const baseDecay = 7.0; 
+  // 低音側（MIDI 21）に向かうほどプラス（最長10秒）、高音側（MIDI 108）に向かうほどマイナス（最短4秒）
   const diff = (69 - midiNote) / (69 - 21) * 3.0; 
   return Math.max(2.0, Math.min(12.0, baseDecay + diff));
 }
@@ -524,6 +526,7 @@ function startPianoNote() {
   masterGain = audioCtx.createGain();
   masterGain.gain.setValueAtTime(0.0, now);
   masterGain.gain.linearRampToValueAtTime(0.25, now + 0.003);
+  // 計算された減衰時間を適用
   masterGain.gain.exponentialRampToValueAtTime(0.001, now + decayDuration);
   masterGain.connect(audioCtx.destination);
 
