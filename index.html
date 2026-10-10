@@ -18,8 +18,9 @@
       max-width: 1000px;
       margin: 0 auto;
     }
+    /* タイトルの文字サイズを3pt（約4px）大きく */
     h1 {
-      font-size: 1rem;
+      font-size: calc(1rem + 4px);
       text-align: center;
       margin: 2px 0 6px 0;
     }
@@ -322,9 +323,8 @@
         </div>
       </div>
 
-      <!-- 左手で打鍵するメインボタンエリア -->
+      <!-- 打鍵・演奏コントロールエリア（ラベル表記削除） -->
       <div class="card">
-        <span class="label-sm" style="font-weight: bold;">演奏コントロール (左手)</span>
         <button id="modeBtn" class="btn-mode" onclick="togglePianoMode()">ピアノ音モード OFF (持続音)</button>
         <div style="margin-top: 4px;">
           <button id="toggleBtn" class="btn-main">▶</button>
@@ -349,7 +349,7 @@
 
         <div class="control-group">
           <div class="control-header">
-            <span>調律音 (右手操作)</span>
+            <span>調律音</span>
             <span class="val-display"><span id="valB">440.00</span> Hz</span>
           </div>
           <div class="cent-display">オフセット: <span id="centBDisplay">0.0</span> cent</div>
@@ -504,16 +504,13 @@ function initAudioContext() {
   }
 }
 
-// 減衰時間計算：中低音（A49以下）は約7秒を維持、高音に向かって短くなり最高音C88（MIDI 108）で1秒になるよう調整
 function getDecayDuration(freq) {
   const midiNote = 69 + 12 * Math.log2(Math.max(27.5, freq) / 440.0);
-  const baseDecay = 7.0; // A49の基準
+  const baseDecay = 7.0; 
   if (midiNote <= 69) {
-    // 低音域（MIDI 21〜69）：約7秒〜約10秒
     const diff = (69 - midiNote) / (69 - 21) * 3.0;
     return baseDecay + diff;
   } else {
-    // 高音域（MIDI 70〜108）：約7秒から急減し、C88（MIDI 108）で1秒に到達
     const ratio = (midiNote - 69) / (108 - 69);
     return Math.max(1.0, baseDecay - ratio * 6.0);
   }
