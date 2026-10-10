@@ -42,7 +42,7 @@
         flex-direction: column;
       }
       .right-column .wave-card-container {
-        order: -1; /* 最上部に移動 */
+        order: -1;
       }
     }
 
@@ -163,7 +163,6 @@
       margin-top: 4px;
     }
 
-    /* 上げる・下げるボタンの高さを打鍵ボタンに合せてサイズUP */
     .btn-fine {
       padding: 16px 0;
       font-size: 1.05rem;
@@ -335,9 +334,10 @@
           </div>
           <div class="cent-display">オフセット: <span id="centBDisplay">0.0</span> cent</div>
 
-          <input type="range" id="freqB" min="0" max="1000" step="0.1" value="500">
+          <!-- 調律音スライダーを非表示 -->
+          <input type="range" id="freqB" min="0" max="1000" step="0.1" value="500" style="display: none;">
           
-          <!-- 右手で素早くピンを回す（微調整する）Hzボタン：サイズUP -->
+          <!-- 右手で素早くピンを回す（微調整する）Hzボタン -->
           <div class="fine-grid-hz" style="margin-top: 6px;">
             <button class="btn-fine hold-btn" data-target="B" data-type="hz" data-delta="-0.01">◀ 下げる</button>
             <button class="btn-fine hold-btn" data-target="B" data-type="hz" data-delta="0.01">上げる ▶</button>
@@ -704,6 +704,7 @@ numFreqAInput.addEventListener('change', () => {
   updateAudioParameters();
 });
 
+// 調律音スライダーは非表示ですが、内部処理用の同期として残しています
 freqBInput.addEventListener('input', () => {
   exactBaseB = sliderToFreq(parseFloat(freqBInput.value));
   updateAudioParameters();
@@ -718,6 +719,7 @@ function adjustValue(target, type, delta) {
     const centDelta = 1200 * Math.log2(newFreq / currentFreq);
     centB += centDelta;
     exactBaseB = getActualFreq(exactBaseB, centB) / Math.pow(2, centB / 1200); 
+    freqBInput.value = freqToSlider(exactBaseB); // スライダー位置も一応同期
   }
   updateAudioParameters();
 }
