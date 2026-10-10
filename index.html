@@ -504,14 +504,19 @@ function initAudioContext() {
   }
 }
 
-// A49（440Hz）を基準（7秒）とし、低音で長め（最大約10秒）、高音でさらに短く（最大約2秒）変化させる関数
+// 減衰時間計算：中低音（A49以下）は約7秒を維持、高音に向かって短くなり最高音C88（MIDI 108）で1秒になるよう調整
 function getDecayDuration(freq) {
   const midiNote = 69 + 12 * Math.log2(Math.max(27.5, freq) / 440.0);
-  const baseDecay = 7.0; 
-  // 低音側（MIDI 21）で +3秒、高音側（MIDI 108）で -5秒（全体で最高音域がさらに2秒短くなる設定）
-  const diff = (69 - midiNote) / (69 - 21) * 3.0;
-  const highCorrection = (midiNote > 69) ? ((midiNote - 69) / (108 - 69) * 2.0) : 0;
-  return Math.max(1.5, Math.min(12.0, baseDecay + diff - highCorrection));
+  const baseDecay = 7.0; // A49の基準
+  if (midiNote <= 69) {
+    // 低音域（MIDI 21〜69）：約7秒〜約10秒
+    const diff = (69 - midiNote) / (69 - 21) * 3.0;
+    return baseDecay + diff;
+  } else {
+    // 高音域（MIDI 70〜108）：約7秒から急減し、C88（MIDI 108）で1秒に到達
+    const ratio = (midiNote - 69) / (108 - 69);
+    return Math.max(1.0, baseDecay - ratio * 6.0);
+  }
 }
 
 function startPianoNote() {
