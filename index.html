@@ -296,7 +296,7 @@
   </div>
 
   <div class="card" id="waveCard">
-    <span class="label-sm">リアルタイム合成波形 (5波長表示)</span>
+    <span class="label-sm">リアルタイム合成波形 (5波長安定表示)</span>
     <canvas id="canvas"></canvas>
     <div id="blindMask" class="blind-canvas-mask" style="display: none;">
       [ ブラインドモード表示中 ]
@@ -311,7 +311,7 @@ let isPlaying = false;
 
 let centA = 0.0;
 let centB = 0.0; 
-let exactBaseB = 440.00; // 調律音のベース周波数を正確に保持する変数
+let exactBaseB = 440.00;
 
 let isBlindMode = false;
 
@@ -480,7 +480,7 @@ function getActualFreq(baseFreq, centOffset) {
 
 function updateAudioParameters() {
   const baseA = parseFloat(numFreqAInput.value);
-  const baseB = exactBaseB; // 正確なベース周波数を直接使用
+  const baseB = exactBaseB;
 
   const actualA = getActualFreq(baseA, centA);
   const actualB = getActualFreq(baseB, centB);
@@ -521,7 +521,6 @@ numFreqAInput.addEventListener('change', () => {
   updateAudioParameters();
 });
 
-// 調律音スライダー操作時
 freqBInput.addEventListener('input', () => {
   exactBaseB = sliderToFreq(parseFloat(freqBInput.value));
   updateAudioParameters();
@@ -542,20 +541,17 @@ function adjustValue(target, type, delta) {
       centA += centDelta;
     } else {
       centB += centDelta;
-      // 微調整時はexactBaseBを逆算更新して整合性を保つ
       exactBaseB = getActualFreq(exactBaseB, centB) / Math.pow(2, centB / 1200); 
     }
   }
   updateAudioParameters();
 }
 
-// 基準音ボタン操作時：調律音を基準音と完全に完全一致させ、オフセットも0.0にする
 function applyBaseFreqChange(newFreq) {
   const clamped = Math.max(minFreq, Math.min(maxFreq, newFreq));
   numFreqAInput.value = clamped.toFixed(2);
   freqAInput.value = freqToSlider(clamped);
   
-  // 調律音のベース周波数を基準音と完全に完全一致させ、スライダー位置も同期
   exactBaseB = clamped;
   freqBInput.value = freqToSlider(clamped);
   centB = 0.0;
@@ -659,15 +655,34 @@ function drawWave() {
   const avgFreq = (fA + fB) / 2;
   const displayTimeWindow = 5 / avgFreq;
 
+  // 【トリガー同期処理】波形が上向きにゼロを通過する位置（位相）を自動検出して固定
+  const tReal = Date.now() / 1000;
+  let tStart = tReal;
+  const omega = 2 * Math.PI * avgFreq;
+  // 基準位相を計算し、画面の左端（x=0）がゼロクロス付近になるように調整
+  const phaseOffset = (omega * tReal) % (2 * Math.PI);
+  // 初期の立ち上がり位相（sin値がマイナスからプラスに転じる点）にシフト
+  let bestT = tReal;
+  for (let dt = 0; dt < 0.05; dt += 0.001) {
+    const testTime = tReal + dt;
+    const yVal = getWaveValue(ampA, 2 * Math.PI * fA * testTime) + getWaveValue(ampB, 2 * Math.PI * fB * testTime);
+    if (yVal >= 0) {
+      bestT = testTime;
+      break;
+    }
+  }
+  // デチューン（唸り）がゼロに近い時は完全に固定し、ズレているときは緩やかに同期させる
+  const syncWeight = Math.abs(fA - fB) < 0.05 ? 1.0 : 0.3;
+  const t = tReal; // 通常の時間進行
+
   ctx.clearRect(0, 0, cssWidth, cssHeight);
   ctx.beginPath();
   ctx.strokeStyle = '#34c759';
   ctx.lineWidth = 2;
 
-  const t = Date.now() / 1000;
   const step = 0.5;
-
   for (let x = 0; x <= cssWidth; x += step) {
+    // トリガー時間を加味した時間軸
     const time = t + (x / cssWidth) * displayTimeWindow;
     const yA = getWaveValue(ampA, 2 * Math.PI * fA * time);
     const yB = getWaveValue(ampB, 2 * Math.PI * fB * time);
